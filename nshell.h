@@ -6,13 +6,20 @@
 #include <sys/wait.h>
 
 #define BUFFER_MAX_SIZE 16384
+#define CWDBUF_MAX_SIZE 1024
+#define HNAMEBUF_MAX_SIZE 512
 
+//SYSTEM
 void replace_home_with_tilde(char *s);
+void swapout_stdout(int* fd, int* backup);
+void swapin_stdout(int* fd, int* backup);
 
+//FILE
 #define TMPNAME_LIST_MAX_SIZE 30
 int make_tempfile();
 void remove_tempfile_all();
 
+//PARSING
 #define TOKEN_LIST_MAX_SIZE 10
 #define METACHAR_LIST_MAX_SIZE 64
 typedef struct _Tokenizer
@@ -26,3 +33,6 @@ void tokenize(Tokenizer *tokenizer, char *s, int len);
 char* get_token(Tokenizer *tokenizer, int index);
 char** get_token_list(Tokenizer *tokenizer);
 int get_token_count(Tokenizer *tokenizer);
+
+//INTERPRET
+int interpret(Tokenizer *tokenizer);

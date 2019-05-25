@@ -1,58 +1,15 @@
 #include "nshell.h"
-char buf[BUFFER_MAX_SIZE];
-
-#define CWDBUF_MAX_SIZE 1024
-char cwdbuf[CWDBUF_MAX_SIZE];
-
-#define HNAMEBUF_MAX_SIZE 512
-char hnamebuf[HNAMEBUF_MAX_SIZE];
-
-char *username;
-
-int interpret(Tokenizer *tokenizer)
-{
-  if(!strcmp(get_token(tokenizer, 0),"cd"))
-  {
-    char *home = getenv("HOME");
-    if(get_token_count(tokenizer)== 1 || strcmp(get_token(tokenizer, 1), "~") == 0)
-    {
-      chdir(home);
-    }
-    else
-    {
-      chdir(get_token(tokenizer, 1));
-    }
-  }
-  else if(!strcmp(get_token(tokenizer, 0),"pwd"))
-  {
-    getcwd(buf,BUFFER_MAX_SIZE-1);
-    printf("%s\n",buf);
-  }
-  else if(!strcmp(get_token(tokenizer, 0), "exit"))
-  {
-    return 0;
-  }
-  else
-  {
-    pid_t pid = fork();
-    int status;
-    if(pid == 0)
-    {
-      if(execvp(get_token(tokenizer, 0), get_token_list(tokenizer))==-1)
-      {
-        printf("NShell: %s: command not found\n", get_token(tokenizer, 0));
-        kill(getpid(), SIGKILL);
-      }
-    }
-    wait(&status);
-  }
-  return 1;
-}
-
 int main()
 {
   int fd, backup_stdout, flag=1;
+  char buf[BUFFER_MAX_SIZE],
+       cwdbuf[CWDBUF_MAX_SIZE],
+       hnamebuf[HNAMEBUF_MAX_SIZE];
+  char *username;
 
+  memset(buf, 0, BUFFER_MAX_SIZE * sizeof(char));
+  memset(cwdbuf, 0, CWDBUF_MAX_SIZE * sizeof(char));
+  memset(hnamebuf, 0, CWDBUF_MAX_SIZE * sizeof(char));
 
   fd = make_tempfile();
 
@@ -75,10 +32,8 @@ int main()
 
     fgets(buf,BUFFER_MAX_SIZE-1,stdin);
     tokenize(&tokenizer, buf, strlen(buf));
-    backup_stdout = dup(STDOUT_FILENO);
-    close(STDOUT_FILENO);
-    dup2(fd, STDOUT_FILENO);
-    close(fd);
+
+    swapin_stdout(&fd, &backup_stdout);
 
     off_t prev = lseek(STDOUT_FILENO, 0, SEEK_CUR);
 
@@ -92,11 +47,7 @@ int main()
 
     lseek(STDOUT_FILENO, prev, SEEK_SET);
 
-    dup2(STDOUT_FILENO, fd);
-    close(STDOUT_FILENO);
-    dup2(backup_stdout, STDOUT_FILENO);
-    close(backup_stdout);
-
+    swapout_stdout(&fd, &backup_stdout);
     while(offlen > 0)
     {
       memset(buf, 0, BUFFER_MAX_SIZE * sizeof(char));
