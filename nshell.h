@@ -6,9 +6,9 @@
 #include <sys/wait.h>
 
 #define BUFFER_MAX_SIZE 16384
-#define CWDBUF_MAX_SIZE 1024
-#define HNAMEBUF_MAX_SIZE 512
-
+#define CWDBUF_MAX_SIZE 512
+#define HNAMEBUF_MAX_SIZE 256
+#define PROMPT_STRING_MAX_SIZE 1024
 //SYSTEM
 void replace_home_with_tilde(char *s);
 void swapout_stdout(int* fd, int* backup);

@@ -1,9 +1,9 @@
 all:
 		make nshell
 
-nshell: main.o interpret.o file.o parsing.o system.o
+nshell: main.o file.o parsing.o system.o interpret.o
 		gcc -o nshell main.o file.o parsing.o system.o interpret.o -Wall
-		rm main.o interpret.o file.o parsing.o system.o
+		rm main.o file.o parsing.o system.o interpret.o
 
 main.o: main.c
 		gcc -c main.c -Wall
@@ -21,4 +21,4 @@ interpret.o: interpret.c
 		gcc -c interpret.c -Wall
 
 clean:
-		rm nshell main.o interpret.o file.o parsing.o system.o
+		rm nshell

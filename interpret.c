@@ -48,9 +48,6 @@ int interpret(Tokenizer *tokenizer)
         perror("wait error");
         return 1;
       }
-      if (WIFEXITED(status) == 0) {
-        printf("Child process did not exit normally.");
-      }
     }
   }
   return 1;

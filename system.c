@@ -11,7 +11,7 @@ void replace_home_with_tilde(char *s)
   }
 }
 
-void swapout_stdout(int* fd, int* backup)
+void swapin_stdout(int *fd, int *backup)
 {
   *backup = dup(STDOUT_FILENO);
   close(STDOUT_FILENO);
@@ -19,7 +19,7 @@ void swapout_stdout(int* fd, int* backup)
   close(*fd);
 }
 
-void swapin_stdout(int* fd, int* backup)
+void swapout_stdout(int *fd, int *backup)
 {
   dup2(STDOUT_FILENO, *fd);
   close(STDOUT_FILENO);
