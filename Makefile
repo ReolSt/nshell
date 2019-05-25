@@ -17,4 +17,4 @@ system.o: system.c
 		gcc -c system.c
 
 clean:
-	  rm nshell main.o file.o parsing.o system.o
+		rm nshell main.o file.o parsing.o system.o
