@@ -1,6 +1,6 @@
 #ifndef STRING_H
 #define STRING_H
-#include "../Vector/Vector.h"
+#include "Vector.h"
 typedef struct _String
 {
   Vector string_vector;

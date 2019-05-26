@@ -21,7 +21,11 @@ int interpret(InterpretContext *icontext)
   }
   else if(!strcmp(get_token(icontext->tokenizer, 0), "history"))
   {
-
+    int count = history_count(icontext->history);
+    for(int i=0; i < count; ++i)
+    {
+      printf("  %d  %s", i, history_get_by_index(icontext->history, i));
+    }
   }
   else if(!strcmp(get_token(icontext->tokenizer, 0), "exit"))
   {

@@ -1,6 +1,5 @@
 #include "nshell.h"
 
-
 int main()
 {
   int output_fd = make_tempfile(), stdout_backup, flag=1;

@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
-#include "core/Vector/Vector.h"
-#include "core/String/String.h"
+#include "core/Vector.h"
+#include "core/String.h"
 
 #define CMD_BUF_MAX_SIZE 256
 #define OUTPUT_BUF_MAX_SIZE 16384
@@ -46,6 +46,7 @@ int history_open(History *history);
 void history_close(History *history);
 const char* history_get_by_index(History *history, int index);
 const char* hitory_get_last(History *history);
+int history_count(History *history);
 void history_update(History *history, const char *cmd);
 
 //PARSING

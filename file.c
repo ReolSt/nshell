@@ -30,6 +30,7 @@ int history_open(History *history)
   string_init(&(history->history_path), history_path, strlen(history_path));
   vector_init(&(history->cmd_list), sizeof(String));
   char cmd_buf[CMD_BUF_MAX_SIZE];
+  fseek(history->history_file, 0, SEEK_SET);
   while(fgets(cmd_buf, CMD_BUF_MAX_SIZE - 1, history_file) != NULL)
   {
     String cmd_string;
@@ -64,9 +65,20 @@ const char* hitory_get_last(History *history)
   return string_c_str(vector_at(&(history->cmd_list), history->size - 1));
 }
 
+int history_count(History *history)
+{
+  return history->size;
+}
+
 void history_update(History *history, const char *cmd)
 {
-  String cmd_string;
-  string_init(&cmd_string, cmd, strlen(cmd));
-  vector_push_back(&(history->cmd_list), &cmd_string);
+  int len = strlen(cmd);
+  if(len)
+  {
+      String cmd_string;
+      string_init(&cmd_string, cmd, len);
+      vector_push_back(&(history->cmd_list), &cmd_string);
+      fprintf(history->history_file, string_c_str(&cmd_string));
+      history->size += 1;
+  }
 }
