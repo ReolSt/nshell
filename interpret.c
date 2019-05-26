@@ -21,7 +21,7 @@ int interpret(Tokenizer *tokenizer)
   }
   else if(!strcmp(get_token(tokenizer, 0), "exit"))
   {
-    return 0;
+    return false;
   }
   else
   {
@@ -46,9 +46,9 @@ int interpret(Tokenizer *tokenizer)
       if(wait(&status) == -1)
       {
         perror("wait error");
-        return 1;
+        return true;
       }
     }
   }
-  return 1;
+  return true;
 }

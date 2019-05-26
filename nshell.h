@@ -4,20 +4,31 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
+#include "Vector/Vector.h"
 
-#define BUFFER_MAX_SIZE 16384
+#define CMD_BUF_MAX_SIZE 256
+#define OUTPUT_BUF_MAX_SIZE 16384
 #define CWDBUF_MAX_SIZE 512
 #define HNAMEBUF_MAX_SIZE 256
 #define PROMPT_STRING_MAX_SIZE 1024
+
 //SYSTEM
+typedef struct _history
+{
+  int last;
+  Vector cmd_list;
+  FILE* history_file;
+} History;
 void replace_home_with_tilde(char *s);
 void swapout_stdout(int* fd, int* backup);
 void swapin_stdout(int* fd, int* backup);
+int get_prompt(char *prompt_buf);
 
 //FILE
 #define TMPNAME_LIST_MAX_SIZE 30
 int make_tempfile();
 void remove_tempfile_all();
+FILE* open_history_file();
 
 //PARSING
 #define TOKEN_LIST_MAX_SIZE 10

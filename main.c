@@ -1,39 +1,27 @@
 #include "nshell.h"
 
-void get_prompt(char *prompt)
-{
-  static char cwdbuf[CWDBUF_MAX_SIZE],
-              hnamebuf[HNAMEBUF_MAX_SIZE];
-  if(getcwd(cwdbuf, CWDBUF_MAX_SIZE-1)==NULL)
-  {
-    printf("getcwd : cannot get current working directory\n");
-  }
-  if(gethostname(hnamebuf, HNAMEBUF_MAX_SIZE-1) != 0)
-  {
-    printf("gethostname : cannot get host name\n");
-  }
-  char *usename = getenv("USER");
-  replace_home_with_tilde(cwdbuf);
-  sprintf(prompt, "%s@%s:%s$ ", usename, hnamebuf, cwdbuf);
-}
 
 int main()
 {
-  int fd = make_tempfile(), backup_stdout, flag=1;
-  char buf[BUFFER_MAX_SIZE],
-     prompt_string[PROMPT_STRING_MAX_SIZE];
+  int output_fd = make_tempfile(), stdout_backup, flag=1;
+
+  char cmdbuf[CMD_BUF_MAX_SIZE],
+       output_buf[OUTPUT_BUF_MAX_SIZE],
+       prompt_string[PROMPT_STRING_MAX_SIZE];
 
   Tokenizer tokenizer;
+  FILE* history_file = open_history_file();
 
   while(flag) {
     get_prompt(prompt_string);
     printf(prompt_string);
     fflush(stdout);
 
-    fgets(buf,BUFFER_MAX_SIZE-1,stdin);
-    tokenize(&tokenizer, buf, strlen(buf));
-    
-    swapin_stdout(&fd, &backup_stdout);
+    fgets(cmd_buf,CMD_BUF_MAX_SIZE-1,stdin);
+    tokenize(&tokenizer, cmd_buf, strlen(cmd_buf));
+
+    swapout_stdout(&output_fd, &stdout_backup);
+
     off_t prev = lseek(STDOUT_FILENO, 0, SEEK_CUR);
 
 
@@ -48,17 +36,21 @@ int main()
 
     lseek(STDOUT_FILENO, prev, SEEK_SET);
 
-    swapout_stdout(&fd, &backup_stdout);
+    swapin_stdout(&output_fd, &stdout_backup);
+
     while(offlen > 0)
     {
-      memset(buf, 0, BUFFER_MAX_SIZE * sizeof(char));
-      int len = read(fd,buf,offlen);
+      memset(output_buf, 0, BUFFER_MAX_SIZE * sizeof(char));
+      int len = read(output_fd,output_buf,offlen);
       offlen -= len;
-      printf("%s",buf);
+      printf("%s",output_buf);
     }
     fflush(stdout);
-    lseek(fd, 0, SEEK_END);
+
+    lseek(output_fd, 0, SEEK_END);
   }
-  close(fd);
+
+  close(output_fd);
+  close(history_file);
   remove_tempfile_all();
 }
