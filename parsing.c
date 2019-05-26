@@ -3,9 +3,7 @@
 void tokenizer_reset(Tokenizer *tokenizer)
 {
   memset(tokenizer->token_list, 0, TOKEN_LIST_MAX_SIZE * sizeof(char*));
-  memset(tokenizer->metachar_index_list, 0, METACHAR_LIST_MAX_SIZE * sizeof(int));
   tokenizer->token_list_size = 0;
-  tokenizer->metachar_list_size = 0;
 }
 
 void tokenize(Tokenizer *tokenizer, char *s, int len) {

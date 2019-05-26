@@ -7,13 +7,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 #include "core/Vector.h"
 #include "core/String.h"
 
-#define CMD_BUF_MAX_SIZE 256
+#define CMD_BUF_MAX_SIZE 512
 #define OUTPUT_BUF_MAX_SIZE 16384
-#define CWDBUF_MAX_SIZE 512
-#define HNAMEBUF_MAX_SIZE 256
+#define CWD_BUF_MAX_SIZE 512
+#define HNAME_BUF_MAX_SIZE 256
 #define PROMPT_STRING_MAX_SIZE 1024
 
 //SYSTEM
@@ -55,9 +57,7 @@ void history_update(History *history, const char *cmd);
 typedef struct _Tokenizer
 {
   char *token_list[TOKEN_LIST_MAX_SIZE];
-  int metachar_index_list[METACHAR_LIST_MAX_SIZE];
   int token_list_size;
-  int metachar_list_size;
 } Tokenizer;
 void tokenize(Tokenizer *tokenizer, char *s, int len);
 char *get_token(Tokenizer *tokenizer, int index);

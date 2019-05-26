@@ -15,8 +15,8 @@ int interpret(InterpretContext *icontext)
   }
   else if(!strcmp(get_token(icontext->tokenizer, 0), "pwd"))
   {
-    char cwdbuf[CWDBUF_MAX_SIZE];
-    getcwd(cwdbuf,CWDBUF_MAX_SIZE-1);
+    char cwdbuf[CWD_BUF_MAX_SIZE];
+    getcwd(cwdbuf,CWD_BUF_MAX_SIZE-1);
     printf("%s\n",cwdbuf);
   }
   else if(!strcmp(get_token(icontext->tokenizer, 0), "history"))

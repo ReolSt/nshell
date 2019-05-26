@@ -4,8 +4,7 @@ int main()
 {
   int output_fd = make_tempfile(), stdout_backup, flag=1;
 
-  char cmd_buf[CMD_BUF_MAX_SIZE],
-       output_buf[OUTPUT_BUF_MAX_SIZE],
+  char output_buf[OUTPUT_BUF_MAX_SIZE],
        prompt_string[PROMPT_STRING_MAX_SIZE];
 
   Tokenizer tokenizer;
@@ -17,12 +16,11 @@ int main()
 
   while(flag) {
     get_prompt(prompt_string);
-    printf(prompt_string);
-    fflush(stdout);
+    char *cmd = readline(prompt_string);
+    add_history(cmd);
 
-    fgets(cmd_buf,CMD_BUF_MAX_SIZE-1,stdin);
-    history_update(&history, cmd_buf);
-    tokenize(&tokenizer, cmd_buf, strlen(cmd_buf));
+    history_update(&history, cmd);
+    tokenize(&tokenizer, cmd, strlen(cmd));
 
     swapout_stdout(&output_fd, &stdout_backup);
 
@@ -33,6 +31,8 @@ int main()
     {
       flag = interpret(&icontext);
     }
+
+    free(cmd);
 
     off_t current = lseek(STDOUT_FILENO, 0, SEEK_CUR);
     off_t offlen = current - prev;

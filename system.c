@@ -29,14 +29,14 @@ void swapin_stdout(int *fd, int *backup)
 
 int get_prompt(char *prompt_buf)
 {
-  static char cwd_buf[CWDBUF_MAX_SIZE],
-              hname_buf[HNAMEBUF_MAX_SIZE];
-  if(getcwd(cwd_buf, CWDBUF_MAX_SIZE-1)==NULL)
+  static char cwd_buf[CWD_BUF_MAX_SIZE],
+              hname_buf[HNAME_BUF_MAX_SIZE];
+  if(getcwd(cwd_buf, CWD_BUF_MAX_SIZE-1)==NULL)
   {
     printf("getcwd : cannot get current working directory\n");
     return 0;
   }
-  if(gethostname(hname_buf, HNAMEBUF_MAX_SIZE-1) != 0)
+  if(gethostname(hname_buf, HNAME_BUF_MAX_SIZE-1) != 0)
   {
     printf("gethostname : cannot get host name\n");
     return 0;

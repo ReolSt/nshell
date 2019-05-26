@@ -13,7 +13,7 @@ TARGET = nshell
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-		gcc -o $(TARGET) $(OBJS) -Wall
+		gcc -o $(TARGET) $(OBJS) $(LIBS) -Wall
 		rm $(OBJS)
 
 depend:
