@@ -17,22 +17,36 @@
 #define PROMPT_STRING_MAX_SIZE 1024
 
 //SYSTEM
-typedef struct _history
-{
-  int last;
-  Vector cmd_list;
-  FILE* history_file;
-} History;
+#define RED   "\x1B[31m"
+#define GRN   "\x1B[32m"
+#define YEL   "\x1B[33m"
+#define BLU   "\x1B[34m"
+#define MAG   "\x1B[35m"
+#define CYN   "\x1B[36m"
+#define WHT   "\x1B[37m"
+#define RESET "\x1B[0m"
 void replace_home_with_tilde(char *s);
-void swapout_stdout(int* fd, int* backup);
-void swapin_stdout(int* fd, int* backup);
+void swapout_stdout(int *fd, int *backup);
+void swapin_stdout(int *fd, int *backup);
 int get_prompt(char *prompt_buf);
 
 //FILE
 #define TMPNAME_LIST_MAX_SIZE 30
 int make_tempfile();
 void remove_tempfile_all();
-// FILE* open_history_file();
+
+typedef struct _history
+{
+  int size;
+  String history_path;
+  Vector cmd_list;
+  FILE *history_file;
+} History;
+int history_open(History *history);
+void history_close(History *history);
+const char* history_get_by_index(History *history, int index);
+const char* hitory_get_last(History *history);
+void history_update(History *history, const char *cmd);
 
 //PARSING
 #define TOKEN_LIST_MAX_SIZE 10
@@ -45,11 +59,16 @@ typedef struct _Tokenizer
   int metachar_list_size;
 } Tokenizer;
 void tokenize(Tokenizer *tokenizer, char *s, int len);
-char* get_token(Tokenizer *tokenizer, int index);
-char** get_token_list(Tokenizer *tokenizer);
+char *get_token(Tokenizer *tokenizer, int index);
+char **get_token_list(Tokenizer *tokenizer);
 int get_token_count(Tokenizer *tokenizer);
 
 //INTERPRET
-int interpret(Tokenizer *tokenizer);
+typedef struct _interpret_context
+{
+  History *history;
+  Tokenizer *tokenizer;
+} InterpretContext;
+int interpret(InterpretContext *icontext);
 
 #endif

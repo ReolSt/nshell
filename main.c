@@ -10,7 +10,11 @@ int main()
        prompt_string[PROMPT_STRING_MAX_SIZE];
 
   Tokenizer tokenizer;
-  // FILE* history_file = open_history_file();
+  History history;
+  history_open(&history);
+  InterpretContext icontext;
+  icontext.tokenizer = &tokenizer;
+  icontext.history = &history;
 
   while(flag) {
     get_prompt(prompt_string);
@@ -18,6 +22,7 @@ int main()
     fflush(stdout);
 
     fgets(cmd_buf,CMD_BUF_MAX_SIZE-1,stdin);
+    history_update(&history, cmd_buf);
     tokenize(&tokenizer, cmd_buf, strlen(cmd_buf));
 
     swapout_stdout(&output_fd, &stdout_backup);
@@ -27,9 +32,8 @@ int main()
 
     if(get_token_count(&tokenizer))
     {
-      flag = interpret(&tokenizer);
+      flag = interpret(&icontext);
     }
-
 
     off_t current = lseek(STDOUT_FILENO, 0, SEEK_CUR);
     off_t offlen = current - prev;
@@ -51,6 +55,6 @@ int main()
   }
 
   close(output_fd);
-  // close(history_file);
+  history_close(&history);
   remove_tempfile_all();
 }

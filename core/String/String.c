@@ -1,6 +1,6 @@
 #include "String.h"
 
-void __string_extend_for_null_terminating(String* string)
+void __string_extend_for_null_terminating(String *string)
 {
   if(string->string_vector.size + 1 >= string->string_vector.capacity)
   {
@@ -8,14 +8,14 @@ void __string_extend_for_null_terminating(String* string)
   }
 }
 
-void string_append(String* string,char ch)
+void string_append(String *string,char ch)
 {
   vector_push_back(&(string->string_vector), &ch);
   __string_extend_for_null_terminating(string);
   string->size += 1;
 }
 
-void string_pop(String* string)
+void string_pop(String *string)
 {
   if(string->size > 0)
   {
@@ -24,20 +24,20 @@ void string_pop(String* string)
   }
 }
 
-void string_insert(String* string, int index, char ch)
+void string_insert(String *string, int index, char ch)
 {
   vector_insert(&(string->string_vector), index, &ch);
   __string_extend_for_null_terminating(string);
   string->size += 1;
 }
 
-void string_remove(String* string, int index)
+void string_remove(String *string, int index)
 {
   vector_remove(&(string->string_vector), index);
   string->size -= 1;
 }
 
-void string_init(String* string, const char *s, size_t length)
+void string_init(String *string, const char *s, size_t length)
 {
   vector_init(&(string->string_vector), sizeof(char));
   for(int i=0;i<length;++i)
@@ -47,39 +47,39 @@ void string_init(String* string, const char *s, size_t length)
   string->size = length;
 }
 
-void string_clear(String* string)
+void string_clear(String *string)
 {
   vector_clear(&(string->string_vector));
   string->size = 0;
 }
 
-void string_destroy(String* string)
+void string_destroy(String *string)
 {
   vector_destroy(&(string->string_vector));
   string->size = 0;
 }
 
-const char* string_c_str(String* string)
+const char *string_c_str(String *string)
 {
   return vector_at(&(string->string_vector), 0);
 }
 
-char string_at(String* string, int index)
+char string_at(String *string, int index)
 {
   return *(char*)vector_at(&(string->string_vector), index);
 }
 
-char string_front(String* string)
+char string_front(String *string)
 {
   return *(char*)vector_front(&(string->string_vector));
 }
 
-char string_back(String* string)
+char string_back(String *string)
 {
   return *(char*)vector_back(&(string->string_vector));
 }
 
-int string_length(String* string)
+int string_length(String *string)
 {
   return string->size;
 }

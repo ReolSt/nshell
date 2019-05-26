@@ -89,7 +89,7 @@ void vector_resize(Vector *v, size_t size)
   v->size = __for_vector_min(v->size, v->capacity);
 }
 
-void vector_insert(Vector *v, int index, const void* x)
+void vector_insert(Vector *v, int index, const void *x)
 {
   if(index >= 0 && index < v->size)
   {
@@ -123,12 +123,12 @@ void* vector_at(Vector *v, int index)
   }
 }
 
-const void* vector_front(Vector *v)
+void* vector_front(Vector *v)
 {
   return v->array;
 }
 
-const void* vector_back(Vector *v)
+void* vector_back(Vector *v)
 {
   return (char*)v->array + (v->size - 1) * v->unitsize;
 }
@@ -143,7 +143,7 @@ size_t vector_capacity(Vector *v)
   return v->capacity;
 }
 
-void vector_push_back(Vector *v, const void* x)
+void vector_push_back(Vector *v, const void *x)
 {
   v->size+=1;
   if(v->size > v->capacity)
