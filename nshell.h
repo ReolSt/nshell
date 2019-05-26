@@ -1,10 +1,14 @@
+#ifndef NSHELL_H
+#define NSHELL_H
+
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
-#include "Vector/Vector.h"
+#include "core/Vector/Vector.h"
+#include "core/String/String.h"
 
 #define CMD_BUF_MAX_SIZE 256
 #define OUTPUT_BUF_MAX_SIZE 16384
@@ -28,7 +32,7 @@ int get_prompt(char *prompt_buf);
 #define TMPNAME_LIST_MAX_SIZE 30
 int make_tempfile();
 void remove_tempfile_all();
-FILE* open_history_file();
+// FILE* open_history_file();
 
 //PARSING
 #define TOKEN_LIST_MAX_SIZE 10
@@ -47,3 +51,5 @@ int get_token_count(Tokenizer *tokenizer);
 
 //INTERPRET
 int interpret(Tokenizer *tokenizer);
+
+#endif

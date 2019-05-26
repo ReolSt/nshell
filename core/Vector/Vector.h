@@ -1,8 +1,10 @@
-#include <stdio.h>
+#ifndef VECTOR_H
+#define VECTOR_H
 #include <stdlib.h>
-#include <memory.h>
 #include <string.h>
-#define VECTOR_DEFAULT_CAPACITY 5
+#include <memory.h>
+
+#define VECTOR_DEFAULT_CAPACITY 32
 
 typedef struct _Vector{
   size_t unitsize;
@@ -31,3 +33,4 @@ size_t vector_size(Vector *v);
 size_t vector_capacity(Vector *v);
 void vector_push_back(Vector *v, const void* x);
 void vector_pop_back(Vector *v);
+#endif

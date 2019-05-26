@@ -5,12 +5,12 @@ int main()
 {
   int output_fd = make_tempfile(), stdout_backup, flag=1;
 
-  char cmdbuf[CMD_BUF_MAX_SIZE],
+  char cmd_buf[CMD_BUF_MAX_SIZE],
        output_buf[OUTPUT_BUF_MAX_SIZE],
        prompt_string[PROMPT_STRING_MAX_SIZE];
 
   Tokenizer tokenizer;
-  FILE* history_file = open_history_file();
+  // FILE* history_file = open_history_file();
 
   while(flag) {
     get_prompt(prompt_string);
@@ -40,7 +40,7 @@ int main()
 
     while(offlen > 0)
     {
-      memset(output_buf, 0, BUFFER_MAX_SIZE * sizeof(char));
+      memset(output_buf, 0, OUTPUT_BUF_MAX_SIZE * sizeof(char));
       int len = read(output_fd,output_buf,offlen);
       offlen -= len;
       printf("%s",output_buf);
@@ -51,6 +51,6 @@ int main()
   }
 
   close(output_fd);
-  close(history_file);
+  // close(history_file);
   remove_tempfile_all();
 }

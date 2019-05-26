@@ -1,4 +1,5 @@
-#include <string.h>
+#ifndef STRING_H
+#define STRING_H
 #include "../Vector/Vector.h"
 typedef struct _String
 {
@@ -18,3 +19,4 @@ char string_at(String* string, int index);
 char string_front(String* string);
 char string_back(String* string);
 int string_length(String* string);
+#endif
