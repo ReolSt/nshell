@@ -34,15 +34,15 @@ int get_prompt(char *prompt_buf)
   if(getcwd(cwd_buf, CWDBUF_MAX_SIZE-1)==NULL)
   {
     printf("getcwd : cannot get current working directory\n");
-    return false;
+    return 0;
   }
   if(gethostname(hname_buf, HNAMEBUF_MAX_SIZE-1) != 0)
   {
     printf("gethostname : cannot get host name\n");
-    return false;
+    return 0;
   }
   char *username = getenv("USER");
   replace_home_with_tilde(cwd_buf);
   sprintf(prompt_buf, "%s@%s:%s$ ", username, hname_buf, cwd_buf);
-  return true;
+  return 1;
 }

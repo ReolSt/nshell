@@ -71,12 +71,12 @@ char string_at(String* string, int index)
 
 char string_front(String* string)
 {
-  vector_front(&(string->string_vector));
+  return *(char*)vector_front(&(string->string_vector));
 }
 
 char string_back(String* string)
 {
-  vector_back(&(string->string_vector));
+  return *(char*)vector_back(&(string->string_vector));
 }
 
 int string_length(String* string)

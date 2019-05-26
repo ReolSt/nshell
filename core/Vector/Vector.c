@@ -1,4 +1,6 @@
+#include <stdio.h>
 #include "Vector.h"
+
 int __for_vector_min(int a, int b)
 {
   return a > b ? b : a;
@@ -161,8 +163,8 @@ void vector_pop_back(Vector *v)
 
 void __DEBUG_vector_print(Vector *v)
 {
-  printf("vector_size = %d\n",vector_size(v));
-  printf("vector_capacity = %d\n",vector_capacity(v));
+  printf("vector_size = %ld\n",vector_size(v));
+  printf("vector_capacity = %ld\n",vector_capacity(v));
   for(int i = 0; i < v->size; i++)
   {
     printf("%d ",*(short*)vector_at(v, i));
