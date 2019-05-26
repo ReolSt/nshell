@@ -44,3 +44,12 @@ int get_token_count(Tokenizer *tokenizer)
 {
   return tokenizer->token_list_size;
 }
+
+int get_next_metachar_index(Tokenizer *tokenizer)
+{
+  for(int i=0;i<tokenizer->token_list_size;++i)
+  {
+    
+  }
+  return 0;
+}

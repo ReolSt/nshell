@@ -34,7 +34,7 @@ int interpret(InterpretContext *icontext)
   else
   {
     pid_t pid = fork();
-    int status;
+    int status = 0;
     if(pid == -1)
     {
       perror("fork error: ");

@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
+#include <memory.h>
 #include <sys/wait.h>
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -52,8 +53,7 @@ int history_count(History *history);
 void history_update(History *history, const char *cmd);
 
 //PARSING
-#define TOKEN_LIST_MAX_SIZE 10
-#define METACHAR_LIST_MAX_SIZE 64
+#define TOKEN_LIST_MAX_SIZE 128
 typedef struct _Tokenizer
 {
   char *token_list[TOKEN_LIST_MAX_SIZE];

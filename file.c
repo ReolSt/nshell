@@ -43,6 +43,7 @@ int history_open(History *history)
 
 void history_close(History *history)
 {
+  string_destroy(&(history->history_path));
   int len = vector_size(&(history->cmd_list));
   for(int i = 0; i < len; ++i)
   {
@@ -78,7 +79,7 @@ void history_update(History *history, const char *cmd)
       String cmd_string;
       string_init(&cmd_string, cmd, len);
       vector_push_back(&(history->cmd_list), &cmd_string);
-      fprintf(history->history_file, string_c_str(&cmd_string));
+      fprintf(history->history_file, "%s\n", string_c_str(&cmd_string));
       history->size += 1;
   }
 }
