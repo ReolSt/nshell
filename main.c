@@ -19,15 +19,9 @@ int main()
     perror("socket_tcp_connect: ");
     exit(1);
   }
-  int socket_fd = socket_tcp_get_descriptor(&socket_tcp);
-
-  {
-    String start_message;
-    string_init(&start_message, argv[3], strlen(argv[3]));
-    string_insert(&start_message, '0', 0);
-    fprintf()
-    write(socket_fd, string_c_str(&start_message), string_length(&start_message));
-  }
+  FILE *socket_file = socket_tcp_get_file(&socket_tcp);
+  fprintf(socket_file, "%c", '0');
+  fprintf(socket_file, "%s", argv[3]);
 
   int output_fd = make_tempfile(), stdout_backup, flag=1;
 
