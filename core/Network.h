@@ -1,11 +1,15 @@
 #ifndef NETWORK_H
 #define NETWORK_H
 
+#include <stdio.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+
+#include "String.h"
 
 typedef struct sockaddr SocketAddress;
 typedef struct sockaddr_in SocketAddressIPv4;
@@ -57,27 +61,27 @@ typedef struct _socket_tcp
 
 int socket_tcp_create
 (
-  SocketTCP *socket,
+  SocketTCP *socket_tcp,
   ProtocolFamily protocol_family,
   AddressFamily address_family
 );
-int socket_tcp_get_descriptor(SocketTCP *socket);
-void socket_tcp_set_port(SocketTCP *socket, short port);
-short socket_tcp_get_port(SocketTCP *socket);
+int socket_tcp_get_descriptor(SocketTCP *socket_tcp);
+void socket_tcp_set_port(SocketTCP *socket_tcp, short port);
+short socket_tcp_get_port(SocketTCP *socket_tcp);
 void socket_tcp_set_protocol_family
 (
-  SocketTCP *socket,
+  SocketTCP *socket_tcp,
   ProtocolFamily protocol_family
 );
-ProtocolFamily socket_tcp_get_protocol_family(SocketTCP *socket);
+ProtocolFamily socket_tcp_get_protocol_family(SocketTCP *socket_tcp);
 void socket_tcp_set_address_family
 (
-  SocketTCP *socket,
+  SocketTCP *socket_tcp,
   AddressFamily address_family
 );
-AddressFamily socket_tcp_get_address_family(SocketTCP *socket);
-int socket_tcp_connect(SocketTCP *socket, char *address, size_t len);
-const char *socket_tcp_get_address(SocketTCP *socket);
-void socket_tcp_close(SocketTCP *socket);
+AddressFamily socket_tcp_get_address_family(SocketTCP *socket_tcp);
+int socket_tcp_connect(SocketTCP *socket_tcp, char *address, size_t len);
+const char *socket_tcp_get_address(SocketTCP *socket_tcp);
+void socket_tcp_close(SocketTCP *socket_tcp);
 
 #endif

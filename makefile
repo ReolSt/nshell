@@ -1,7 +1,7 @@
 DEPEND_FILE = .depend
 
 CC = gcc
-SRCS = main.c file.c parsing.c system.c interpret.c core/Vector.c core/String.c
+SRCS = main.c file.c parsing.c system.c interpret.c core/Vector.c core/String.c core/Network.c
 OBJS = $(SRCS:%.c=%.o)
 
 LIBS = -lreadline
