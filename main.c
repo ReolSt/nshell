@@ -23,6 +23,9 @@ int main()
 
   while(flag) {
     get_prompt(prompt_string);
+    //char cmd[512];
+    //printf("%s",prompt_string);
+    //fgets(cmd, 511, stdin);
     char *cmd = readline(prompt_string);
 
 

@@ -40,7 +40,7 @@ void __vector_rshift(Vector *v, int index)
 
 void __vector_lshift(Vector *v, int index)
 {
-  if(index>=0 && index<v->size)
+  if(index>=0 && index < v->size)
   {
     memmove((char*)v->array + index * v->unitsize,
             (char*)v->array + (index + 1) * v->unitsize,

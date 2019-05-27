@@ -36,9 +36,10 @@ int interpret(InterpretContext *icontext)
   else
   {
     pid_t pid = fork();
-    int status;
+    int status = 0;
     int size = get_token_count(tokenizer);
     for(int i=0;i<size;++i)
+
     {
       printf("token %d : %s\n", i, get_token_list(tokenizer)[i]);
     }

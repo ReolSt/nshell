@@ -69,3 +69,12 @@ void tokenizer_destroy(Tokenizer *tokenizer)
   clear_tokens(tokenizer);
   vector_destroy(&(tokenizer->token_list));
 }
+
+int get_next_metachar_index(Tokenizer *tokenizer)
+{
+  for(int i=0;i<tokenizer->token_list_size;++i)
+  {
+    
+  }
+  return 0;
+}

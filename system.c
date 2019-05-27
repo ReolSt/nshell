@@ -6,7 +6,7 @@ void replace_home_with_tilde(char *s)
   int len = strlen(home);
   if(strncmp(s, home, len) == 0)
   {
-    strcpy(s + 1, s + len);
+    memmove(s + 1, s + len, len);
     s[0] = '~';
   }
 }
