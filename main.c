@@ -25,37 +25,16 @@ int main(int argc, char *argv[])
     tokenizer_tokenize(&tokenizer, cmd, cmd_len);
     add_history(cmd);
     history_update(&history, cmd, cmd_len);
-    swapout_stdout(&output_fd, &stdout_backup);
 
-    off_t prev = lseek(STDOUT_FILENO, 0, SEEK_CUR);
     if(tokenizer_get_count(&tokenizer) > 0)
     {
       flag = interpret(&icontext);
     }
 
     free(cmd);
-
-    off_t current = lseek(STDOUT_FILENO, 0, SEEK_CUR);
-    off_t offlen = current - prev;
-
-    lseek(STDOUT_FILENO, prev, SEEK_SET);
-
-    swapin_stdout(&output_fd, &stdout_backup);
-
-    while(offlen > 0)
-    {
-      memset(output_buf, 0, OUTPUT_BUF_MAX_SIZE * sizeof(char));
-      int len = read(output_fd,output_buf,offlen);
-      offlen -= len;
-      printf("%s\n",output_buf);
-    }
-    fflush(stdout);
-
-    lseek(output_fd, 0, SEEK_END);
   }
   tokenizer_destroy(&tokenizer);
   close(output_fd);
   history_close(&history);
   remove_tempfile_all();
-
 }

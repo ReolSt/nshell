@@ -15,6 +15,7 @@ int socket_tcp_create
     return socket_descriptor;
   }
   socket_tcp->socket_descriptor = socket_descriptor;
+  socket_tcp->socket_file = fdopen(socket_descriptor, "r+");
   return socket_descriptor;
 }
 
@@ -36,7 +37,17 @@ void socket_tcp_set_port(SocketTCP *socket_tcp, short port)
   }
 }
 
-int socket_tcp_get_port(SocketTCP *socket_tcp)
+int socket_tcp_get_descriptor(SocketTCP *socket_tcp)
+{
+  return socket_tcp->socket_descriptor;
+}
+
+FILE* socket_tcp_get_file(SocketTCP *socket_tcp)
+{
+  return socket_tcp->socket_file;
+}
+
+short socket_tcp_get_port(SocketTCP *socket_tcp)
 {
   return socket_tcp->port_host;
 }

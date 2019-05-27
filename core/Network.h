@@ -52,6 +52,7 @@ typedef enum _address_family
 typedef struct _socket_tcp
 {
   int socket_descriptor;
+  FILE *socket_file;
   int port_host;
   String address_string;
   ProtocolFamily protocol_family;
@@ -66,6 +67,7 @@ int socket_tcp_create
   AddressFamily address_family
 );
 int socket_tcp_get_descriptor(SocketTCP *socket_tcp);
+FILE* socket_tcp_get_file(SocketTCP *socket_tcp);
 void socket_tcp_set_port(SocketTCP *socket_tcp, short port);
 int socket_tcp_get_port(SocketTCP *socket_tcp);
 void socket_tcp_set_protocol_family
