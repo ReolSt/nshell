@@ -2,14 +2,37 @@
 
 int main()
 {
+  if(argc!=4) {
+		printf("Usage : %s <IP> <port> <UID>\n", argv[0]);
+		exit(1);
+	}
+
+  SocketTCP socket_tcp;
+  if(socket_tcp_create(&socket_tcp, ProtocolFamily_IPv4, AddressFamily_IPv4) < 0)
+  {
+    perror("socket_tcp_create: ");
+    exit(1);
+  }
+  socket_tcp_set_port(&socket_tcp, atoi(argv[2]));
+  if(socket_tcp_connect(&socket_tcp, argv[1], strlen(argv[1])) < 0)
+  {
+    perror("socket_tcp_connect: ");
+    exit(1);
+  }
+  int socket_fd = socket_tcp_get_descriptor(&socket_tcp);
+
+  {
+    String start_message;
+    string_init(&start_message, argv[3], strlen(argv[3]));
+    string_insert(&start_message, '0', 0);
+    fprintf()
+    write(socket_fd, string_c_str(&start_message), string_length(&start_message));
+  }
+
   int output_fd = make_tempfile(), stdout_backup, flag=1;
 
   char output_buf[OUTPUT_BUF_MAX_SIZE],
        prompt_string[PROMPT_STRING_MAX_SIZE];
-
-  //SocketTCP socket_tcp;
-  //socket_tcp_create(&socket, ProtocolFamily_IPv4, AddressFamily_IPv4);
-  //socket_tcp_set_port(&socket,port);
 
   Tokenizer tokenizer;
   tokenizer_init(&tokenizer);
@@ -58,10 +81,10 @@ int main()
     lseek(output_fd, 0, SEEK_END);
   }
 
-  //socket_tcp_close(&socket);
   tokenizer_destroy(&tokenizer);
   close(output_fd);
   history_close(&history);
   remove_tempfile_all();
 
+  socket_tcp_close(&socket);
 }
