@@ -11,6 +11,7 @@
 #include <readline/history.h>
 #include "core/Vector.h"
 #include "core/String.h"
+#include "core/Network.h"
 
 #define CMD_BUF_MAX_SIZE 512
 #define OUTPUT_BUF_MAX_SIZE 16384
@@ -44,6 +45,7 @@ typedef struct _history
   Vector cmd_list;
   FILE *history_file;
 } History;
+
 int history_open(History *history);
 void history_close(History *history);
 const char* history_get_by_index(History *history, int index);
@@ -52,17 +54,20 @@ int history_count(History *history);
 void history_update(History *history, const char *cmd);
 
 //PARSING
-#define TOKEN_LIST_MAX_SIZE 10
-#define METACHAR_LIST_MAX_SIZE 64
+#define TOKEN_MAX_COUNT 64
 typedef struct _Tokenizer
 {
-  char *token_list[TOKEN_LIST_MAX_SIZE];
-  int token_list_size;
+  char *token_ptr_list[TOKEN_MAX_COUNT];
+  Vector token_list;
 } Tokenizer;
-void tokenize(Tokenizer *tokenizer, char *s, int len);
-char *get_token(Tokenizer *tokenizer, int index);
-char **get_token_list(Tokenizer *tokenizer);
+
+void tokenizer_init(Tokenizer *tokenizer);
+void tokenize(Tokenizer *tokenizer, char *s, size_t len);
+const char *get_token(Tokenizer *tokenizer, int index);
+char * const *get_token_list(Tokenizer *tokenizer);
 int get_token_count(Tokenizer *tokenizer);
+void clear_tokens(Tokenizer *tokenizer);
+void tokenizer_destroy(Tokenizer *tokenizer);
 
 //INTERPRET
 typedef struct _interpret_context
@@ -70,6 +75,7 @@ typedef struct _interpret_context
   History *history;
   Tokenizer *tokenizer;
 } InterpretContext;
+
 int interpret(InterpretContext *icontext);
 
 #endif

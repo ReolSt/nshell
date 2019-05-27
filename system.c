@@ -43,6 +43,6 @@ int get_prompt(char *prompt_buf)
   }
   char *username = getenv("USER");
   replace_home_with_tilde(cwd_buf);
-  sprintf(prompt_buf, "%s%s@%s %s%s%s $ ", GRN, username, hname_buf, YEL, cwd_buf, RESET);
+  sprintf(prompt_buf, "%s%s@%s %s%s%s\n$ ", GRN, username, hname_buf, YEL, cwd_buf, RESET);
   return 1;
 }

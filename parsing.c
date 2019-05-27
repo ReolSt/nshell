@@ -1,33 +1,42 @@
 #include "nshell.h"
 
-void tokenizer_reset(Tokenizer *tokenizer)
+void tokenizer_init(Tokenizer *tokenizer)
 {
-  memset(tokenizer->token_list, 0, TOKEN_LIST_MAX_SIZE * sizeof(char*));
-  tokenizer->token_list_size = 0;
+  vector_init(&tokenizer->token_list, sizeof(String));
 }
 
-void tokenize(Tokenizer *tokenizer, char *s, int len) {
-  tokenizer_reset(tokenizer);
-  if(s[len-1]=='\n')
+void tokenize(Tokenizer *tokenizer, char *s, size_t len) {
+  clear_tokens(tokenizer);
+  char copy[CMD_BUF_MAX_SIZE];
+  char *sptr = copy;
+  strncpy(copy, s, len);
+  if(copy[len-1]=='\n')
   {
-      s[len-1]='\0';
+      copy[len-1]='\0';
       len-=1;
   }
   char *token = NULL;
-  while((token = strsep(&s, " ")) != NULL)
+  int index = 0;
+  while((token = strsep(&sptr, " ")) != NULL)
   {
-    if(strlen(token))
+    int tlen = strlen(token);
+    if(tlen)
     {
-        tokenizer->token_list[tokenizer->token_list_size++] = token;
+      String ts;
+      string_init(&ts, token, tlen);
+      vector_push_back(&(tokenizer->token_list), &ts);
+      tokenizer->token_ptr_list[index] =
+        vector_at(&(((String*)vector_at(&(tokenizer->token_list), index))->string_vector), 0);
+      index += 1;
     }
   }
 }
 
-char* get_token(Tokenizer *tokenizer, int index)
+const char* get_token(Tokenizer *tokenizer, int index)
 {
-  if(index < tokenizer->token_list_size)
+  if(index < get_token_count(tokenizer))
   {
-    return tokenizer->token_list[index];
+    return string_c_str(vector_at(&(tokenizer->token_list), index));
   }
   else
   {
@@ -35,12 +44,28 @@ char* get_token(Tokenizer *tokenizer, int index)
   }
 }
 
-char** get_token_list(Tokenizer *tokenizer)
+char* const* get_token_list(Tokenizer *tokenizer)
 {
-  return tokenizer->token_list;
+  return tokenizer->token_ptr_list;
 }
 
 int get_token_count(Tokenizer *tokenizer)
 {
-  return tokenizer->token_list_size;
+  return vector_size(&(tokenizer->token_list));
+}
+
+void clear_tokens(Tokenizer *tokenizer)
+{
+  int vsize = vector_size(&(tokenizer->token_list));
+  for(int i = 0; i < vsize; ++i)
+  {
+    string_destroy(vector_at(&(tokenizer->token_list), i));
+    tokenizer->token_ptr_list[i] = NULL;
+  }
+}
+
+void tokenizer_destroy(Tokenizer *tokenizer)
+{
+  clear_tokens(tokenizer);
+  vector_destroy(&(tokenizer->token_list));
 }
