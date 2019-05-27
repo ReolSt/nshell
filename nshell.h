@@ -63,11 +63,11 @@ typedef struct _Tokenizer
 } Tokenizer;
 
 void tokenizer_init(Tokenizer *tokenizer);
-void tokenize(Tokenizer *tokenizer, char *s, size_t len);
-const char *get_token(Tokenizer *tokenizer, int index);
-char * const *get_token_list(Tokenizer *tokenizer);
-int get_token_count(Tokenizer *tokenizer);
-void clear_tokens(Tokenizer *tokenizer);
+void tokenizer_tokenize(Tokenizer *tokenizer, char *s, size_t len);
+const char *tokenizer_get(Tokenizer *tokenizer, int index);
+char * const *tokenizer_get_list(Tokenizer *tokenizer);
+int tokenizer_get_count(Tokenizer *tokenizer);
+void tokenizer_clear(Tokenizer *tokenizer);
 void tokenizer_destroy(Tokenizer *tokenizer);
 
 //INTERPRET

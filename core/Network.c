@@ -18,6 +18,11 @@ int socket_tcp_create
   return socket_descriptor;
 }
 
+int socket_tcp_get_descriptor(SocketTCP *socket_tcp)
+{
+  return socket_tcp->socket_descriptor;
+}
+
 void socket_tcp_set_port(SocketTCP *socket_tcp, short port)
 {
   switch(socket_tcp->address_family)
@@ -31,12 +36,7 @@ void socket_tcp_set_port(SocketTCP *socket_tcp, short port)
   }
 }
 
-int socket_tcp_get_descriptor(SocketTCP *socket_tcp)
-{
-  return socket_tcp->socket_descriptor;
-}
-
-short socket_tcp_get_port(SocketTCP *socket_tcp)
+int socket_tcp_get_port(SocketTCP *socket_tcp)
 {
   return socket_tcp->port_host;
 }

@@ -1,15 +1,11 @@
 #include "nshell.h"
 
-int main()
+int main(int argc, char *argv[])
 {
   int output_fd = make_tempfile(), stdout_backup, flag=1;
 
   char output_buf[OUTPUT_BUF_MAX_SIZE],
        prompt_string[PROMPT_STRING_MAX_SIZE];
-
-  //SocketTCP socket_tcp;
-  //socket_tcp_create(&socket, ProtocolFamily_IPv4, AddressFamily_IPv4);
-  //socket_tcp_set_port(&socket,port);
 
   Tokenizer tokenizer;
   tokenizer_init(&tokenizer);
@@ -25,19 +21,19 @@ int main()
     get_prompt(prompt_string);
     char *cmd = readline(prompt_string);
     int cmd_len = strlen(cmd);
-    tokenize(&tokenizer, cmd, cmd_len);
+
+    tokenizer_tokenize(&tokenizer, cmd, cmd_len);
     add_history(cmd);
     history_update(&history, cmd, cmd_len);
     swapout_stdout(&output_fd, &stdout_backup);
 
     off_t prev = lseek(STDOUT_FILENO, 0, SEEK_CUR);
-    if(get_token_count(&tokenizer) > 0)
+    if(tokenizer_get_count(&tokenizer) > 0)
     {
       flag = interpret(&icontext);
     }
 
     free(cmd);
-
 
     off_t current = lseek(STDOUT_FILENO, 0, SEEK_CUR);
     off_t offlen = current - prev;
@@ -57,8 +53,6 @@ int main()
 
     lseek(output_fd, 0, SEEK_END);
   }
-
-  //socket_tcp_close(&socket);
   tokenizer_destroy(&tokenizer);
   close(output_fd);
   history_close(&history);

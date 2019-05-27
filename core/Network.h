@@ -67,7 +67,7 @@ int socket_tcp_create
 );
 int socket_tcp_get_descriptor(SocketTCP *socket_tcp);
 void socket_tcp_set_port(SocketTCP *socket_tcp, short port);
-short socket_tcp_get_port(SocketTCP *socket_tcp);
+int socket_tcp_get_port(SocketTCP *socket_tcp);
 void socket_tcp_set_protocol_family
 (
   SocketTCP *socket_tcp,
