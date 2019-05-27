@@ -2,17 +2,17 @@
 
 void __string_extend_for_null_terminating(String *string)
 {
-  if(string->string_vector.size + 1 >= string->string_vector.capacity)
+  if(string->string_vector.size + 2 >= string->string_vector.capacity)
   {
     __vector_extend(&(string->string_vector));
   }
 }
 
-void string_append(String *string,char ch)
+void string_append(String *string, char ch)
 {
   vector_push_back(&(string->string_vector), &ch);
-  __string_extend_for_null_terminating(string);
   string->size += 1;
+  __string_extend_for_null_terminating(string);
 }
 
 void string_pop(String *string)
@@ -27,8 +27,8 @@ void string_pop(String *string)
 void string_insert(String *string, int index, char ch)
 {
   vector_insert(&(string->string_vector), index, &ch);
-  __string_extend_for_null_terminating(string);
   string->size += 1;
+  __string_extend_for_null_terminating(string);
 }
 
 void string_remove(String *string, int index)
@@ -61,7 +61,7 @@ void string_destroy(String *string)
 
 const char *string_c_str(String *string)
 {
-  return vector_at(&(string->string_vector), 0);
+  return (const char*)vector_at(&(string->string_vector), 0);
 }
 
 char string_at(String *string, int index)

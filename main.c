@@ -24,28 +24,25 @@ int main()
   while(flag) {
     get_prompt(prompt_string);
     char *cmd = readline(prompt_string);
-
-    tokenize(&tokenizer, cmd, strlen(cmd));
-    if(get_token_count(&tokenizer) == 0)
-    {
-      free(cmd);
-      continue;
-    }
+    int cmd_len = strlen(cmd);
+    tokenize(&tokenizer, cmd, cmd_len);
     add_history(cmd);
-    history_update(&history, cmd);
+    history_update(&history, cmd, cmd_len);
     swapout_stdout(&output_fd, &stdout_backup);
 
     off_t prev = lseek(STDOUT_FILENO, 0, SEEK_CUR);
-
-    if(get_token_count(&tokenizer))
+    if(get_token_count(&tokenizer) > 0)
     {
       flag = interpret(&icontext);
     }
 
     free(cmd);
 
+
     off_t current = lseek(STDOUT_FILENO, 0, SEEK_CUR);
     off_t offlen = current - prev;
+
+    lseek(STDOUT_FILENO, prev, SEEK_SET);
 
     swapin_stdout(&output_fd, &stdout_backup);
 

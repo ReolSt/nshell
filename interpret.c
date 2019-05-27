@@ -3,6 +3,7 @@ int interpret(InterpretContext *icontext)
 {
   Tokenizer *tokenizer = icontext->tokenizer;
   History *history = icontext->history;
+
   if(!strcmp(get_token(tokenizer, 0),"cd"))
   {
     char *home = getenv("HOME");
@@ -37,33 +38,28 @@ int interpret(InterpretContext *icontext)
   {
     pid_t pid = fork();
     int status = 0;
-    int size = get_token_count(tokenizer);
-    // for(int i=0;i<size;++i)
-    // {
-    //   printf("token %d : %s\n", i, get_token_list(tokenizer)[i]);
-    // }
-    // if(pid == -1)
-    // {
-    //   perror("fork error: ");
-    //   exit(EXIT_FAILURE);
-    // }
-    // else if(pid == 0)
-    // {
-    //   if(execvp(get_token(tokenizer, 0), get_token_list(tokenizer))==-1)
-    //   {
-    //     printf("NShell: %s: command not found\n", get_token(tokenizer, 0));
-    //     kill(getpid(), SIGKILL);
-    //   }
-    //   _exit(EXIT_SUCCESS);
-    // }
-    // else
-    // {
-    //   if(wait(&status) == -1)
-    //   {
-    //     perror("wait error");
-    //     return 0;
-    //   }
-    // }
+    if(pid == -1)
+    {
+      perror("fork error: ");
+      exit(EXIT_FAILURE);
+    }
+    else if(pid == 0)
+    {
+      if(execvp(get_token(tokenizer, 0), get_token_list(tokenizer))==-1)
+      {
+        printf("NShell: %s: command not found\n", get_token(tokenizer, 0));
+        kill(getpid(), SIGKILL);
+      }
+      _exit(EXIT_SUCCESS);
+    }
+    else
+    {
+      if(wait(&status) == -1)
+      {
+        perror("wait error");
+        return 0;
+      }
+    }
   }
   return 1;
 }

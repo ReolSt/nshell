@@ -71,9 +71,8 @@ int history_count(History *history)
   return history->size;
 }
 
-void history_update(History *history, const char *cmd)
+void history_update(History *history, const char *cmd, size_t len)
 {
-  int len = strlen(cmd);
   if(len)
   {
       String cmd_string;

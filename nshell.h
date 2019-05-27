@@ -52,7 +52,7 @@ void history_close(History *history);
 const char* history_get_by_index(History *history, int index);
 const char* hitory_get_last(History *history);
 int history_count(History *history);
-void history_update(History *history, const char *cmd);
+void history_update(History *history, const char *cmd, size_t len);
 
 //PARSING
 #define TOKEN_MAX_COUNT 64
