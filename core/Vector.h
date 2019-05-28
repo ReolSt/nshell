@@ -4,7 +4,7 @@
 #include <string.h>
 #include <memory.h>
 
-#define VECTOR_DEFAULT_CAPACITY 32
+#define VECTOR_DEFAULT_CAPACITY 64
 
 typedef struct _Vector{
   size_t unitsize;
