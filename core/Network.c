@@ -7,6 +7,7 @@ int socket_tcp_create
   AddressFamily address_family
 )
 {
+  memset(socket_tcp->server_address, 0, sizeof(socket_tcp->server_address));
   socket_tcp_set_protocol_family(socket_tcp, protocol_family);
   socket_tcp_set_address_family(socket_tcp, address_family);
   int socket_descriptor = socket(protocol_family, SOCK_STREAM, 0);
