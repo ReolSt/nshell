@@ -118,5 +118,6 @@ const char *socket_tcp_get_address(SocketTCP *socket_tcp)
 void socket_tcp_close(SocketTCP *socket_tcp)
 {
   string_destroy(&(socket_tcp->address_string));
+  fclose(socket_tcp->socket_file);
   close(socket_tcp->socket_descriptor);
 }
