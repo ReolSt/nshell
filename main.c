@@ -2,10 +2,8 @@
 
 int main(int argc, char *argv[])
 {
-  int output_fd = make_tempfile(), stdout_backup, flag=1;
-
-  char output_buf[OUTPUT_BUF_MAX_SIZE],
-       prompt_string[PROMPT_STRING_MAX_SIZE];
+  int flag=1;
+  char prompt_string[PROMPT_STRING_MAX_SIZE];
 
   Tokenizer tokenizer;
   tokenizer_init(&tokenizer);
@@ -14,8 +12,7 @@ int main(int argc, char *argv[])
   history_open(&history);
 
   InterpretContext icontext;
-  icontext.tokenizer = &tokenizer;
-  icontext.history = &history;
+  interpret_context_init(&icontext, &history, &tokenizer);
 
   while(flag) {
     get_prompt(prompt_string);
@@ -25,16 +22,14 @@ int main(int argc, char *argv[])
     tokenizer_tokenize(&tokenizer, cmd, cmd_len);
     add_history(cmd);
     history_update(&history, cmd, cmd_len);
+    free(cmd);
 
     if(tokenizer_get_count(&tokenizer) > 0)
     {
       flag = interpret(&icontext);
     }
-
-    free(cmd);
   }
   tokenizer_destroy(&tokenizer);
-  close(output_fd);
   history_close(&history);
   remove_tempfile_all();
 }
