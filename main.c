@@ -1,6 +1,6 @@
 #include "nshell.h"
 
-int main()
+int main(int argc, char *argv[])
 {
   if(argc!=4) {
 		printf("Usage : %s <IP> <port> <UID>\n", argv[0]);
@@ -33,15 +33,17 @@ int main()
   history_open(&history);
 
   InterpretContext icontext;
-  icontext.tokenizer = &tokenizer;
-  icontext.history = &history;
+  interpret_context_init(&icontext, &history, &tokenizer);
+
+  FILE *output_file = fdopen(output_fd, "r+");
+  setvbuf(output_file, NULL, _IOLBF, 0);
 
   while(flag) {
     get_prompt(prompt_string);
     char *cmd = readline(prompt_string);
     int cmd_len = strlen(cmd);
 
-    tokenize(&tokenizer, cmd, cmd_len);
+    tokenizer_tokenize(&tokenizer, cmd, cmd_len);
     add_history(cmd);
     history_update(&history, cmd, cmd_len);
     free(cmd);
@@ -49,10 +51,11 @@ int main()
     swapout_stdout(&output_fd, &stdout_backup);
 
     off_t prev = lseek(STDOUT_FILENO, 0, SEEK_CUR);
-    if(get_token_count(&tokenizer) > 0)
+    if(tokenizer_get_count(&tokenizer) > 0)
     {
       flag = interpret(&icontext);
     }
+    puts("");
 
     off_t current = lseek(STDOUT_FILENO, 0, SEEK_CUR);
     off_t offlen = current - prev;
@@ -61,12 +64,10 @@ int main()
 
     swapin_stdout(&output_fd, &stdout_backup);
 
-    while(offlen > 0)
+    while(offlen  > 0 && fgets(output_buf, OUTPUT_BUF_MAX_SIZE, output_file) != NULL)
     {
-      memset(output_buf, 0, OUTPUT_BUF_MAX_SIZE * sizeof(char));
-      int len = read(output_fd,output_buf,offlen);
-      offlen -= len;
-      printf("%s\n",output_buf);
+      offlen -= strlen(output_buf);
+      printf("%s", output_buf);
     }
     fflush(stdout);
 
@@ -74,9 +75,9 @@ int main()
   }
 
   tokenizer_destroy(&tokenizer);
-  close(output_fd);
+  fclose(output_file);
   history_close(&history);
   remove_tempfile_all();
 
-  socket_tcp_close(&socket);
+  socket_tcp_close(&socket_tcp);
 }

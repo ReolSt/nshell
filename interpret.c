@@ -1,28 +1,34 @@
 #include "nshell.h"
+void interpret_context_init(InterpretContext *icontext, History *history, Tokenizer *tokenizer)
+{
+  icontext->history = history;
+  icontext->tokenizer = tokenizer;
+}
+
 int interpret(InterpretContext *icontext)
 {
   Tokenizer *tokenizer = icontext->tokenizer;
   History *history = icontext->history;
 
-  if(!strcmp(get_token(tokenizer, 0),"cd"))
+  if(!strcmp(tokenizer_get(tokenizer, 0),"cd"))
   {
     char *home = getenv("HOME");
-    if(get_token_count(tokenizer)== 1 || strcmp(get_token(tokenizer, 1), "~") == 0)
+    if(tokenizer_get_count(tokenizer)== 1 || strcmp(tokenizer_get(tokenizer, 1), "~") == 0)
     {
       chdir(home);
     }
     else
     {
-      chdir(get_token(tokenizer, 1));
+      chdir(tokenizer_get(tokenizer, 1));
     }
   }
-  else if(!strcmp(get_token(tokenizer, 0), "pwd"))
+  else if(!strcmp(tokenizer_get(tokenizer, 0), "pwd"))
   {
     char cwdbuf[CWD_BUF_MAX_SIZE];
     getcwd(cwdbuf,CWD_BUF_MAX_SIZE-1);
     printf("%s\n",cwdbuf);
   }
-  else if(!strcmp(get_token(tokenizer, 0), "history"))
+  else if(!strcmp(tokenizer_get(tokenizer, 0), "history"))
   {
     int count = history_count(history);
     for(int i=0; i < count; ++i)
@@ -30,7 +36,7 @@ int interpret(InterpretContext *icontext)
       printf("  %d  %s", i, history_get_by_index(history, i));
     }
   }
-  else if(!strcmp(get_token(tokenizer, 0), "exit"))
+  else if(!strcmp(tokenizer_get(tokenizer, 0), "exit"))
   {
     return 0;
   }
@@ -45,9 +51,9 @@ int interpret(InterpretContext *icontext)
     }
     else if(pid == 0)
     {
-      if(execvp(get_token(tokenizer, 0), get_token_list(tokenizer))==-1)
+      if(execvp(tokenizer_get(tokenizer, 0), tokenizer_get_list(tokenizer))==-1)
       {
-        printf("NShell: %s: command not found\n", get_token(tokenizer, 0));
+        printf("NShell: %s: command not found\n", tokenizer_get(tokenizer, 0));
         kill(getpid(), SIGKILL);
       }
       _exit(EXIT_SUCCESS);

@@ -18,6 +18,8 @@ void remove_tempfile_all()
 
 int history_open(History *history)
 {
+  history->size = 0;
+  history->history_file = NULL;
   char *home = getenv("HOME");
   char history_path[256];
   sprintf(history_path, "%s/.nshell_history", home);
@@ -54,6 +56,8 @@ void history_close(History *history)
   {
     fclose(history->history_file);
   }
+  history->size = 0;
+  history->history_file = NULL;
 }
 
 const char* history_get_by_index(History *history, int index)
@@ -77,6 +81,7 @@ void history_update(History *history, const char *cmd, size_t len)
   {
       String cmd_string;
       string_init(&cmd_string, cmd, len);
+      string_append(&cmd_string, '\n');
       vector_push_back(&(history->cmd_list), &cmd_string);
       fprintf(history->history_file, "%s\n", string_c_str(&cmd_string));
       history->size += 1;

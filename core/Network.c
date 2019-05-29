@@ -21,6 +21,21 @@ int socket_tcp_create
   return socket_descriptor;
 }
 
+int socket_tcp_get_descriptor(SocketTCP *socket_tcp)
+{
+  return socket_tcp->socket_descriptor;
+}
+
+FILE* socket_tcp_get_file(SocketTCP *socket_tcp)
+{
+  return socket_tcp->socket_file;
+}
+
+int socket_tcp_get_port(SocketTCP *socket_tcp)
+{
+  return socket_tcp->port_host;
+}
+
 void socket_tcp_set_port(SocketTCP *socket_tcp, short port)
 {
   switch(socket_tcp->address_family)
@@ -34,19 +49,9 @@ void socket_tcp_set_port(SocketTCP *socket_tcp, short port)
   }
 }
 
-int socket_tcp_get_descriptor(SocketTCP *socket_tcp)
+ProtocolFamily socket_tcp_get_protocol_family(SocketTCP *socket_tcp)
 {
-  return socket_tcp->socket_descriptor;
-}
-
-FILE* socket_tcp_get_file(SocketTCP *socket_tcp)
-{
-  return socket_tcp->socket_file;
-}
-
-short socket_tcp_get_port(SocketTCP *socket_tcp)
-{
-  return socket_tcp->port_host;
+  return socket_tcp->protocol_family;
 }
 
 void socket_tcp_set_protocol_family
@@ -58,9 +63,9 @@ void socket_tcp_set_protocol_family
   socket_tcp->protocol_family = protocol_family;
 }
 
-ProtocolFamily socket_tcp_get_protocol_family(SocketTCP *socket_tcp)
+AddressFamily socket_tcp_get_address_family(SocketTCP *socket_tcp)
 {
-  return socket_tcp->protocol_family;
+  return socket_tcp->address_family;
 }
 
 void socket_tcp_set_address_family
@@ -72,12 +77,6 @@ void socket_tcp_set_address_family
   socket_tcp->address_family = address_family;
   socket_tcp->server_address.sa_family = address_family;
 }
-
-AddressFamily socket_tcp_get_address_family(SocketTCP *socket_tcp)
-{
-  return socket_tcp->address_family;
-}
-
 
 int socket_tcp_connect(SocketTCP *socket_tcp, char *address, size_t len)
 {

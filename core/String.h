@@ -10,7 +10,7 @@ typedef struct _String
 void __string_extend_for_null_terminating(String *string);
 void string_append(String *string, const char ch);
 void string_pop(String *string);
-void string_insert(String &string, int index, const char ch);
+void string_insert(String *string, int index, const char ch);
 void string_remove(String *string, int index);
 void string_init(String *string, const char *s, size_t length);
 void string_clear(String *string);

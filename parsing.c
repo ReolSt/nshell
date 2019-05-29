@@ -6,8 +6,8 @@ void tokenizer_init(Tokenizer *tokenizer)
   vector_init(&(tokenizer->token_list), sizeof(String));
 }
 
-void tokenize(Tokenizer *tokenizer, char *s, size_t len) {
-  clear_tokens(tokenizer);
+void tokenizer_tokenize(Tokenizer *tokenizer, char *s, size_t len) {
+  tokenizer_clear(tokenizer);
   char copy[CMD_BUF_MAX_SIZE];
   char *sptr = copy;
   memset(copy, 0, CMD_BUF_MAX_SIZE * sizeof(char));
@@ -27,25 +27,24 @@ void tokenize(Tokenizer *tokenizer, char *s, size_t len) {
       index += 1;
     }
   }
-  printf("%s\n",get_token(tokenizer, 0));
 }
 
-const char* get_token(Tokenizer *tokenizer, int index)
+const char* tokenizer_get(Tokenizer *tokenizer, int index)
 {
   return string_c_str(vector_at(&(tokenizer->token_list), index));
 }
 
-char* const* get_token_list(Tokenizer *tokenizer)
+char* const* tokenizer_get_list(Tokenizer *tokenizer)
 {
   return tokenizer->token_ptr_list;
 }
 
-int get_token_count(Tokenizer *tokenizer)
+int tokenizer_get_count(Tokenizer *tokenizer)
 {
   return vector_size(&(tokenizer->token_list));
 }
 
-void clear_tokens(Tokenizer *tokenizer)
+void tokenizer_clear(Tokenizer *tokenizer)
 {
   memset(tokenizer->token_ptr_list, 0, TOKEN_MAX_COUNT * sizeof(char*));
   size_t vsize = vector_size(&(tokenizer->token_list));
@@ -58,6 +57,6 @@ void clear_tokens(Tokenizer *tokenizer)
 
 void tokenizer_destroy(Tokenizer *tokenizer)
 {
-  clear_tokens(tokenizer);
+  tokenizer_clear(tokenizer);
   vector_destroy(&(tokenizer->token_list));
 }
