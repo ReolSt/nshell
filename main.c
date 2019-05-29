@@ -6,7 +6,6 @@ int main()
 		printf("Usage : %s <IP> <port> <UID>\n", argv[0]);
 		exit(1);
 	}
-
   SocketTCP socket_tcp;
   if(socket_tcp_create(&socket_tcp, ProtocolFamily_IPv4, AddressFamily_IPv4) < 0)
   {
@@ -20,8 +19,7 @@ int main()
     exit(1);
   }
   FILE *socket_file = socket_tcp_get_file(&socket_tcp);
-  fprintf(socket_file, "%c", '0');
-  fprintf(socket_file, "%s", argv[3]);
+  fprintf(socket_file, "0\n%s\n", argv[3]);
 
   int output_fd = make_tempfile(), stdout_backup, flag=1;
 
@@ -42,9 +40,12 @@ int main()
     get_prompt(prompt_string);
     char *cmd = readline(prompt_string);
     int cmd_len = strlen(cmd);
+
     tokenize(&tokenizer, cmd, cmd_len);
     add_history(cmd);
     history_update(&history, cmd, cmd_len);
+    free(cmd);
+
     swapout_stdout(&output_fd, &stdout_backup);
 
     off_t prev = lseek(STDOUT_FILENO, 0, SEEK_CUR);
@@ -52,9 +53,6 @@ int main()
     {
       flag = interpret(&icontext);
     }
-
-    free(cmd);
-
 
     off_t current = lseek(STDOUT_FILENO, 0, SEEK_CUR);
     off_t offlen = current - prev;
