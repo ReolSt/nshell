@@ -81,6 +81,7 @@ void history_update(History *history, const char *cmd, size_t len)
   {
       String cmd_string;
       string_init(&cmd_string, cmd, len);
+      string_append(&cmd_string, '\n');
       vector_push_back(&(history->cmd_list), &cmd_string);
       fprintf(history->history_file, "%s\n", string_c_str(&cmd_string));
       history->size += 1;

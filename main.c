@@ -28,6 +28,7 @@ int main(int argc, char *argv[])
     {
       flag = interpret(&icontext);
     }
+    puts("");
   }
   tokenizer_destroy(&tokenizer);
   history_close(&history);
