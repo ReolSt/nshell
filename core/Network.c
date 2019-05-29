@@ -16,6 +16,7 @@ int socket_tcp_create
   }
   socket_tcp->socket_descriptor = socket_descriptor;
   socket_tcp->socket_file = fdopen(socket_descriptor, "r+");
+  setvbuf(socket_tcp->socket_file, NULL, _IONBF, 0);
   return socket_descriptor;
 }
 
