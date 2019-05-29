@@ -77,6 +77,12 @@ typedef struct _interpret_context
   Tokenizer *tokenizer;
 } InterpretContext;
 
+void interpret_context_init
+(
+  InterpretContext *icontext,
+  History *history,
+  Tokenizer *tokenizer
+);
 int interpret(InterpretContext *icontext);
 
 #endif

@@ -1,5 +1,4 @@
 #include "Network.h"
-#include "String.h"
 int socket_tcp_create
 (
   SocketTCP *socket_tcp,
@@ -7,6 +6,7 @@ int socket_tcp_create
   AddressFamily address_family
 )
 {
+  memset(&(socket_tcp->server_address), 0, sizeof(socket_tcp->server_address));
   socket_tcp_set_protocol_family(socket_tcp, protocol_family);
   socket_tcp_set_address_family(socket_tcp, address_family);
   int socket_descriptor = socket(protocol_family, SOCK_STREAM, 0);
@@ -16,6 +16,7 @@ int socket_tcp_create
   }
   socket_tcp->socket_descriptor = socket_descriptor;
   socket_tcp->socket_file = fdopen(socket_descriptor, "r+");
+  setvbuf(socket_tcp->socket_file, NULL, _IOLBF, 0);
   return socket_descriptor;
 }
 
@@ -113,5 +114,6 @@ const char *socket_tcp_get_address(SocketTCP *socket_tcp)
 void socket_tcp_close(SocketTCP *socket_tcp)
 {
   string_destroy(&(socket_tcp->address_string));
+  fclose(socket_tcp->socket_file);
   close(socket_tcp->socket_descriptor);
 }

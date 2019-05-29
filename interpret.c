@@ -1,4 +1,9 @@
 #include "nshell.h"
+void interpret_context_init(InterpretContext *icontext, History *history, Tokenizer *tokenizer)
+{
+  icontext->history = history;
+  icontext->tokenizer = tokenizer;
+}
 int interpret(InterpretContext *icontext)
 {
   Tokenizer *tokenizer = icontext->tokenizer;
