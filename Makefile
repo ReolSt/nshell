@@ -5,7 +5,7 @@ CMDS = shell_server recv_echo handle_echo
 
 all : $(CMDS)
 
-shell_server : shell_server.c
+shell_server : shell_server.c Hanzo/HanzoVector.c
 	$(CC) $(CFLAGS) $^ -o $@ $(CLIBS)
 
 recv_echo : recv_echo.c

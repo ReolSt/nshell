@@ -8,6 +8,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include "Hanzo/HanzoVector.h"
+
 
 #define MAX_CNT 100
 #define BUF_SIZE 100
@@ -17,8 +19,7 @@
 typedef struct clnt_userdata{
   char UID[30];
   int socket_index;
-  ;
-}clnt_userdata;
+} clnt_userdata;
 
 void error_handling(char *msg);
 void *Relay_clnt(void *arg);
@@ -43,7 +44,7 @@ int thread_cnt = 0;
 pthread_mutex_t mutex;
 
 
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[]) {
   int serv_sock, clnt_sock;
   int insertFlag = -1;
   int errorFlag = 0;
@@ -56,7 +57,7 @@ int main(int argc, char *argv[]){
   char UID[30];
   pthread_t thread_id;
 
-  if(argc != 2){
+  if(argc != 2) {
     printf("Usage : %s <port> \n", argv[0]);
     exit(1);
   }
@@ -72,14 +73,15 @@ int main(int argc, char *argv[]){
   serv_adr.sin_addr.s_addr = htonl(INADDR_ANY);
   serv_adr.sin_port = htons(atoi(argv[1]));
 
-  if(bind(serv_sock, (struct sockaddr*)&serv_adr, sizeof(serv_adr))==-1)
-  error_handling("bind() error");
+  if(bind(serv_sock, (struct sockaddr*)&serv_adr, sizeof(serv_adr))==-1) {
+    error_handling("bind() error");
+  }
 
-  if(listen(serv_sock, 5) == -1)
-  error_handling("listen() error");
+  if(listen(serv_sock, 5) == -1) {
+    error_handling("listen() error");
+  }
 
-  while(1)
-  {
+  while(1) {
     errorFlag = 0;
 
     clnt_adr_sz = sizeof(clnt_adr);
@@ -88,33 +90,32 @@ int main(int argc, char *argv[]){
 
     // fdopen을 이용한 고수준 파일 입출력..
     FILE *file = fdopen(clnt_sock, "r+");
-    if(file == NULL){
+    if(file == NULL) {
       error_handling("fdopen Error");
     }
 
-	if(fgets(buffer, BUF_SIZE, file) == NULL)
-		error_handling("fgets Error");
+    if(fgets(buffer, BUF_SIZE, file) == NULL) {
+      error_handling("fgets Error");
+    }
 
-	if(sscanf(buffer, "%d, %s\n", &insertFlag, UID) == -1 ){
-		error_handling("sscanf Error");
-	}
-	
+    if(sscanf(buffer, "%d, %s\n", &insertFlag, UID) == -1 ) {
+      error_handling("sscanf Error");
+    }
 
-	printf("insertFlag, UID : %d, %s \n", insertFlag, UID);
-
+    printf("insertFlag, UID : %d, %s \n", insertFlag, UID);
 
     // 1, handle sock 일때,그에 맞는 구조체 배열의 UID를 확인한다.
-    if(insertFlag){
+    if(insertFlag) {
       pthread_mutex_lock(&mutex);
-      for(int i = 0; i < handle_cnt; i++){
-        if(strcmp(UID, handle_userdata[i].UID) == 0){
+      for(int i = 0; i < handle_cnt; i++) {
+        if(strcmp(UID, handle_userdata[i].UID) == 0) {
           printf("handle UID 중복, 다른 UID를 사용하십시오. \n");
           errorFlag = 1;
-		}
+        }
       }
       pthread_mutex_unlock(&mutex);
       pthread_mutex_lock(&mutex);
-      if(errorFlag != 1){
+      if(errorFlag != 1) {
         handle_socks[handle_cnt] = clnt_sock;
         strcpy(handle_userdata[handle_cnt].UID, UID);
         handle_userdata[handle_cnt].socket_index = handle_cnt;
@@ -124,10 +125,10 @@ int main(int argc, char *argv[]){
       pthread_mutex_unlock(&mutex);
     }
     // recv 소켓 일 때,
-    else{
+    else {
       pthread_mutex_lock(&mutex);
-      for(int i = 0; i < recv_cnt; i++){
-        if(strcmp(UID, recv_userdata[i].UID) == 0){
+      for(int i = 0; i < recv_cnt; i++) {
+        if(strcmp(UID, recv_userdata[i].UID) == 0) {
           errorFlag = 1;
           printf("recv UID 중복, 다른 UID를 사용하십시오.\n");
           break;
@@ -136,8 +137,7 @@ int main(int argc, char *argv[]){
       pthread_mutex_unlock(&mutex);
       // 중복 아니라면,
       pthread_mutex_lock(&mutex);
-      if(errorFlag != 1)
-      {
+      if(errorFlag != 1) {
         recv_socks[recv_cnt] = clnt_sock;
         strcpy(recv_userdata[recv_cnt].UID, UID);
         recv_userdata[recv_cnt].socket_index = recv_cnt;
@@ -149,10 +149,10 @@ int main(int argc, char *argv[]){
 
     printf("\n==========Thread 확인==============\n");
     pthread_mutex_lock(&mutex);
-    for(int i = 0; i < thread_cnt; i++){
+    for(int i = 0; i < thread_cnt; i++) {
       // 이미 해당하는 UID에 맞는 쓰레드를
       printf(" UID : %s , thread_UID[%d] : %s \n", UID, i , thread_UID[i]);
-      if(strcmp(UID, thread_UID[i]) == 0){
+      if(strcmp(UID, thread_UID[i]) == 0) {
         errorFlag = 1;
         printf("thread UID 중복, 쓰레드 생성 안한다. \n ");
         break;
@@ -163,7 +163,7 @@ int main(int argc, char *argv[]){
 
 
 	// 쓰레드를 생성시키면 안되는 경우
-    if(errorFlag == 1){
+    if(errorFlag == 1) {
       printf("Thread Create Disband, Go to Next Routine \n");
       continue;
     }
@@ -188,7 +188,6 @@ void* Relay_clnt(void* str)
   char UID[30];
   clnt_userdata recv_user;
   clnt_userdata handle_user;
-
 
   int recv_sock;
   int handle_sock;
@@ -258,10 +257,11 @@ void* Relay_clnt(void* str)
       printf("recv로 송신 : %s \n",command_buf);
       write(recv_sock,command_buf,command_len);
     }
-    else{
+    else
+    {
       printf("handle Client 접속종료\n");
       break;
-	}
+    }
 
     memset(&output_buf, 0, sizeof(output_buf));
     if((output_len=read(recv_sock,output_buf,1000))!=0)
@@ -269,7 +269,8 @@ void* Relay_clnt(void* str)
       printf("handle로 송신 : %s \n", output_buf);
       write(handle_sock,output_buf,output_len);
     }
-    else{
+    else
+    {
       printf("recv Client 접속종료\n");
       break;
     }
@@ -287,7 +288,7 @@ void* Relay_clnt(void* str)
   return NULL;
 }
 
-void error_handling(char *msg){
+void error_handling(char *msg) {
   fputs(msg, stderr);
   fputc('\n', stderr);
   exit(1);
