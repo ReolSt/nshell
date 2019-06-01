@@ -57,10 +57,9 @@ int main(int argc, char *argv[])
 
 	while(1)
 	{
-		while((str_len=read(sock, message, BUF_SIZE))!=0)
+		while(fgets(message, BUF_SIZE - 1, file)!=NULL)
 		{
-			write(sock, message, str_len);
-			message[str_len] = 0;
+			fprintf(file, "%s", message);
 			printf("Message from server: %s \n", message);
 		}
 	}

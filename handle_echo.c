@@ -49,11 +49,11 @@ int main(int argc, char *argv[])
 
 	sprintf(message, "%d, %s\n", insertFlag, UID);
 
-	if(fprintf(file, "%s", message) == 1){
+	if(fprintf(file, "%s", message) < 0){
 		printf("fprintf() error \n");
 	}
-	else{
-		printf("데이터 전송 : %s \n", message);
+	else {
+		printf("데이터 전송 : %s\n", message);
 	}
 	while(1)
 	{
@@ -62,16 +62,15 @@ int main(int argc, char *argv[])
 			while(1)
 			{
 				// 여기가 fgets != NULL 였을 때, printf들을 통해 검토해본 결과, 정상동작하지 않아, 일단 read로 바꿨다.
-				if((str_len=read(sock,message,strlen(message)))!=0)
+				if(fgets(message, BUF_SIZE - 1, file)!=NULL)
 				{
-					message[str_len]='\0';
 					printf("From server:%s\n",message);
 					printf("recv_client과 연결이 되었습니다.\n");
 					relayFlag=1;
 					break;
 				}
 				else
-				{	
+				{
 					printf("err:TIME_OUT | 상대 측 클라이언트와 연결하지 못했습니다.\n");
 					return -1;
 				}
@@ -83,18 +82,21 @@ int main(int argc, char *argv[])
 			{
 				fputs("Input message(Q to quit): ", stdout);
 				fgets(message, BUF_SIZE, stdin);
-	
+
 				if(!strcmp(message,"q\n") || !strcmp(message,"Q\n"))
 				{
 					fclose(file);
 					return 0;
 				}
-	
-	
+
+				// 혹시 fprintf가 출력부분인가? 맞나보네..
+				size_t message_len = strlen(message);
 				fprintf(file, message);
-	
-				if(fgets(message, BUF_SIZE, file)!=NULL)
+
+				// 문제의 부분 fgets..
+				if((fgets(message, BUF_SIZE, file))!=NULL && strlen(message) == message_len) {
 					printf("Message from server: %s", message);
+				}
 				else
 				{
 					printf("상대 측 클라이언트와의 연결이 끊겼습니다.\n");
