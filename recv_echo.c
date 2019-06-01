@@ -23,22 +23,22 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 	strcpy(UID,argv[3]);
-	sock=socket(PF_INET, SOCK_STREAM, 0);   
+	sock=socket(PF_INET, SOCK_STREAM, 0);
 	if(sock==-1)
 		error_handling("socket() error");
-	
+
 	memset(&serv_adr, 0, sizeof(serv_adr));
 	serv_adr.sin_family=AF_INET;
 	serv_adr.sin_addr.s_addr=inet_addr(argv[1]);
 	serv_adr.sin_port=htons(atoi(argv[2]));
-	
+
 	if(connect(sock, (struct sockaddr*)&serv_adr, sizeof(serv_adr))==-1)
 		error_handling("connect() error!");
 	else
 	{
 		puts("Connected...........");
 	}
-		
+
 	file = fdopen(sock, "r+");
 	if(file == NULL){
 		printf("fdopen() error \n");
@@ -47,23 +47,24 @@ int main(int argc, char *argv[])
 
 	sprintf(message, "%d, %s\n", flag, UID);
 
-	if(fprintf(file, "%s", message)==1){
+	if(fprintf(file, "%s", message)==1) {
 		printf("fprintf() error \n");
 	}
-	else{
+	else {
 		printf("데이터 전송 : %s \n", message);
 	}
 
-	
-	while(1) 
+
+	while(1)
 	{
-		while((str_len=read(sock, message, BUF_SIZE))!=0){
+		while((str_len=read(sock, message, BUF_SIZE))!=0)
+		{
 			write(sock, message, str_len);
 			message[str_len] = 0;
 			printf("Message from server: %s \n", message);
 		}
 	}
-	
+
 	close(sock);
 	return 0;
 }
@@ -74,4 +75,3 @@ void error_handling(char *message)
 	fputc('\n', stderr);
 	exit(1);
 }
-
