@@ -13,6 +13,7 @@ int main(int argc, char *argv[])
 	FILE *file;
 	int sock;
 	int insertFlag= 1;
+	int relayFlag=0;
 	char UID[30];
 	char message[BUF_SIZE];
 	int str_len, recv_len, recv_cnt;
@@ -54,22 +55,56 @@ int main(int argc, char *argv[])
 	else{
 		printf("데이터 전송 : %s \n", message);
 	}
-
 	while(1)
 	{
-		fputs("Input message(Q to quit): ", stdout);
-		fgets(message, BUF_SIZE, stdin);
-
-		if(!strcmp(message,"q\n") || !strcmp(message,"Q\n"))
-			break;
-
-		fprintf(file, message);
-
-		fgets(message, BUF_SIZE, file);
-		printf("Message from server: %s", message);
+		if(relayFlag==0)
+		{
+			while(1)
+			{
+				// 여기가 fgets != NULL 였을 때, printf들을 통해 검토해본 결과, 정상동작하지 않아, 일단 read로 바꿨다.
+				if((str_len=read(sock,message,strlen(message)))!=0)
+				{
+					message[str_len]='\0';
+					printf("From server:%s\n",message);
+					printf("recv_client과 연결이 되었습니다.\n");
+					relayFlag=1;
+					break;
+				}
+				else
+				{	
+					printf("err:TIME_OUT | 상대 측 클라이언트와 연결하지 못했습니다.\n");
+					return -1;
+				}
+			}
+		}
+		if(relayFlag==1)
+		{
+			while(1)
+			{
+				fputs("Input message(Q to quit): ", stdout);
+				fgets(message, BUF_SIZE, stdin);
+	
+				if(!strcmp(message,"q\n") || !strcmp(message,"Q\n"))
+				{
+					fclose(file);
+					return 0;
+				}
+	
+	
+				fprintf(file, message);
+	
+				if(fgets(message, BUF_SIZE, file)!=NULL)
+					printf("Message from server: %s", message);
+				else
+				{
+					printf("상대 측 클라이언트와의 연결이 끊겼습니다.\n");
+					relayFlag=0;
+					break;
+				}
+			}
+		}
 	}
 	fclose(file);
-	close(sock);
 	return 0;
 }
 

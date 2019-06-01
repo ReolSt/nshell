@@ -113,15 +113,17 @@ int main(int argc, char *argv[]){
 		}
       }
       pthread_mutex_unlock(&mutex);
-      pthread_mutex_lock(&mutex);
       if(errorFlag != 1){
+	pthread_mutex_lock(&mutex);
+
         handle_socks[handle_cnt] = clnt_sock;
         strcpy(handle_userdata[handle_cnt].UID, UID);
         handle_userdata[handle_cnt].socket_index = handle_cnt;
         handle_cnt++;
         printf("handle client conntected : %d \n", handle_cnt);
+
+	pthread_mutex_unlock(&mutex);
       }
-      pthread_mutex_unlock(&mutex);
     }
     // recv 소켓 일 때,
     else{
@@ -135,16 +137,18 @@ int main(int argc, char *argv[]){
       }
       pthread_mutex_unlock(&mutex);
       // 중복 아니라면,
-      pthread_mutex_lock(&mutex);
       if(errorFlag != 1)
       {
+	pthread_mutex_lock(&mutex);
+
         recv_socks[recv_cnt] = clnt_sock;
         strcpy(recv_userdata[recv_cnt].UID, UID);
         recv_userdata[recv_cnt].socket_index = recv_cnt;
         recv_cnt++;
         printf("recv client conntected : %d \n", recv_cnt);
+
+	pthread_mutex_unlock(&mutex);
       }
-      pthread_mutex_unlock(&mutex);
     }
 
     printf("\n==========Thread 확인==============\n");
@@ -186,6 +190,7 @@ int main(int argc, char *argv[]){
 void* Relay_clnt(void* str)
 {
   char UID[30];
+  char errorMsg[30] = "Connect End";
   clnt_userdata recv_user;
   clnt_userdata handle_user;
 
@@ -193,7 +198,7 @@ void* Relay_clnt(void* str)
   int recv_sock;
   int handle_sock;
   int time=0;
-  int out=0;
+  char out='a';
 
   char command_buf[BUF_SIZE];
   char output_buf[1000];
@@ -249,6 +254,8 @@ void* Relay_clnt(void* str)
 
   recv_sock=recv_socks[recv_user.socket_index];
   handle_sock=handle_socks[handle_user.socket_index];
+  if(command_len=write(handle_sock,&out,sizeof(out))!=0)
+	 printf("handler_clnt flag변환\n"); 
 
   while(1)
   {
@@ -260,6 +267,7 @@ void* Relay_clnt(void* str)
     }
     else{
       printf("handle Client 접속종료\n");
+	  close_handle_clnt(handle_sock, handle_user.socket_index);
       break;
 	}
 
@@ -271,17 +279,18 @@ void* Relay_clnt(void* str)
     }
     else{
       printf("recv Client 접속종료\n");
+	  printf("handle로 종료 메시지 송신 : %s \n", errorMsg);
+      write(handle_sock, errorMsg, sizeof(errorMsg));
+	  close_recv_clnt(recv_sock, recv_user.socket_index);
       break;
     }
   }
 
   // 쓰레드 종료 단계, 중계되고 있는 소켓들 종료, 배열 정리
   pthread_mutex_lock(&mutex);
-  close_handle_clnt(handle_sock, handle_user.socket_index);
-  close_recv_clnt(recv_sock, recv_user.socket_index);
   pop_UID_array(UID);
 
-  printf("Thread End : handle_cnt : %d, recv_cnt : %d, thread_cnt : %d \n", handle_cnt, recv_cnt, thread_cnt);
+  printf("Thread End : handle_cnt : %d, recv_cnt : %d, thread_cnt : %d \n\n\n", handle_cnt, recv_cnt, thread_cnt);
   pthread_mutex_unlock(&mutex);
 
   return NULL;
