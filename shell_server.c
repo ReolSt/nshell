@@ -193,7 +193,7 @@ void* Relay_clnt(void* str)
   char errorMsg[30] = "Connect End";
   clnt_userdata recv_user;
   clnt_userdata handle_user;
-
+  FILE *file;
 
   int recv_sock;
   int handle_sock;
@@ -202,10 +202,14 @@ void* Relay_clnt(void* str)
 
   char command_buf[BUF_SIZE];
   char output_buf[1000];
+  char message[30];
   int command_len;
   int output_len;
 
+
   strcpy(UID, (char*)str);
+  strcpy(message, "Error");
+
 
   while(1)
   {
@@ -254,6 +258,13 @@ void* Relay_clnt(void* str)
 
   recv_sock=recv_socks[recv_user.socket_index];
   handle_sock=handle_socks[handle_user.socket_index];
+  
+  file = fdopen(handle_sock, "r+");
+  if(file == NULL){
+	printf("fdopen() error \n");
+  }
+  setvbuf(file, NULL, _IOLBF, 0);
+
   if(command_len=write(handle_sock,&out,sizeof(out))!=0)
 	 printf("handler_clnt flag변환\n"); 
 
@@ -278,9 +289,16 @@ void* Relay_clnt(void* str)
       write(handle_sock,output_buf,output_len);
     }
     else{
-      printf("recv Client 접속종료\n");
-	  printf("handle로 종료 메시지 송신 : %s \n", errorMsg);
-      write(handle_sock, errorMsg, sizeof(errorMsg));
+	  pthread_mutex_lock(&mutex);
+      printf("recv Client 접속종료 Msg : %s \n", message);
+	  if(fprintf(file, "%s", message) == 1){
+		printf("fprintf() error \n");
+	  }	  
+      else{
+		printf("종료메시지 전송 : %s \n", message);
+	  }
+
+	  pthread_mutex_unlock(&mutex);
 	  close_recv_clnt(recv_sock, recv_user.socket_index);
       break;
     }

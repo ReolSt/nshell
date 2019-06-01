@@ -83,18 +83,21 @@ int main(int argc, char *argv[])
 			{
 				fputs("Input message(Q to quit): ", stdout);
 				fgets(message, BUF_SIZE, stdin);
-	
+
+		
 				if(!strcmp(message,"q\n") || !strcmp(message,"Q\n"))
 				{
 					fclose(file);
 					return 0;
 				}
 	
-	
+				// 혹시 fprintf가 출력부분인가? 맞나보네..	
 				fprintf(file, message);
-	
-				if(fgets(message, BUF_SIZE, file)!=NULL)
+
+				// 문제의 부분 fgets.. 
+				if((fgets(message, BUF_SIZE, file))!=NULL){
 					printf("Message from server: %s", message);
+				}
 				else
 				{
 					printf("상대 측 클라이언트와의 연결이 끊겼습니다.\n");
