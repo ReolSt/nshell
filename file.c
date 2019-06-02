@@ -29,29 +29,30 @@ int history_open(History *history)
     return 0;
   }
   history->history_file = history_file;
-  string_init(&(history->history_path), history_path, strlen(history_path));
-  vector_init(&(history->cmd_list), sizeof(String));
+  RainbowString_Initialize(&(history->history_path), history_path, strlen(history_path));
+  RainbowVector_Initialize(&(history->cmd_list), sizeof(RainbowString));
   char cmd_buf[CMD_BUF_MAX_SIZE];
   fseek(history->history_file, 0, SEEK_SET);
   while(fgets(cmd_buf, CMD_BUF_MAX_SIZE - 1, history_file) != NULL)
   {
-    String cmd_string;
-    string_init(&cmd_string, cmd_buf, strlen(cmd_buf));
-    vector_push_back(&(history->cmd_list), &cmd_string);
+    RainbowString cmd_string;
+    RainbowString_Initialize(&cmd_string, cmd_buf, strlen(cmd_buf));
+    Call(history->cmd_list, PushBack, &cmd_string);
     history->size += 1;
   }
   return 1;
 }
 
-void history_close(History *history)
+void history_close(History * history)
 {
-  string_destroy(&(history->history_path));
-  int len = vector_size(&(history->cmd_list));
+  Call(history->history_path, Destroy);
+  int len = Call(history->cmd_list, Size);
   for(int i = 0; i < len; ++i)
   {
-    string_destroy(vector_at(&(history->cmd_list), i));
+    RainbowString * string = Call(history->cmd_list, At, i);
+    CallP(string, Destroy);
   }
-  vector_destroy(&(history->cmd_list));
+  Call(history->cmd_list, Destroy);
   if(history->history_file != NULL)
   {
     fclose(history->history_file);
@@ -60,14 +61,16 @@ void history_close(History *history)
   history->history_file = NULL;
 }
 
-const char* history_get_by_index(History *history, int index)
+const char * history_get_by_index(History *history, int index)
 {
-  return string_c_str(vector_at(&(history->cmd_list),index));
+  RainbowString * string = Call(history->cmd_list ,At, index);
+  return CallP(string, CStr);
 }
 
-const char* hitory_get_last(History *history)
+const char * hitory_get_last(History *history)
 {
-  return string_c_str(vector_at(&(history->cmd_list), history->size - 1));
+  RainbowString * string = Call(history->cmd_list, At, history->size - 1);
+  return CallP(string, CStr);
 }
 
 int history_count(History *history)
@@ -79,11 +82,11 @@ void history_update(History *history, const char *cmd, size_t len)
 {
   if(len)
   {
-      String cmd_string;
-      string_init(&cmd_string, cmd, len);
-      string_append(&cmd_string, '\n');
-      vector_push_back(&(history->cmd_list), &cmd_string);
-      fprintf(history->history_file, "%s\n", string_c_str(&cmd_string));
+      RainbowString cmd_string;
+      RainbowString_Initialize(&cmd_string, cmd, len);
+      Call(cmd_string, Append, '\n');
+      Call(history->cmd_list, PushBack, &cmd_string);
+      fprintf(history->history_file, "%s\n", Call(cmd_string, CStr));
       history->size += 1;
   }
 }

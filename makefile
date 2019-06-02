@@ -1,7 +1,7 @@
 DEPEND_FILE = .depend
 
-CC = gcc
-SRCS = main.c file.c parsing.c system.c interpret.c core/Vector.c core/String.c core/Network.c
+CC = gcc -g
+SRCS = main.c file.c parsing.c system.c interpret.c Rainbow/RainbowVector.c Rainbow/RainbowString.c Rainbow/RainbowFileStream.c Rainbow/RainbowSocket.c
 OBJS = $(SRCS:%.c=%.o)
 
 LIBS = -lreadline
@@ -13,7 +13,7 @@ TARGET = nshell
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-		gcc -o $(TARGET) $(OBJS) $(LIBS) -Wall
+		gcc -o $(TARGET) $(OBJS) $(LIBS)
 		rm $(OBJS)
 
 depend:

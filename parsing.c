@@ -3,7 +3,7 @@
 void tokenizer_init(Tokenizer *tokenizer)
 {
   memset(tokenizer->token_ptr_list, 0, TOKEN_MAX_COUNT * sizeof(char*));
-  vector_init(&(tokenizer->token_list), sizeof(String));
+  RainbowVector_Initialize(&(tokenizer->token_list), sizeof(RainbowString));
 }
 
 void tokenizer_tokenize(Tokenizer *tokenizer, char *s, size_t len) {
@@ -19,11 +19,10 @@ void tokenizer_tokenize(Tokenizer *tokenizer, char *s, size_t len) {
     int tlen = strlen(token);
     if(tlen)
     {
-      String ts;
-      string_init(&ts, token, tlen);
-      vector_push_back(&(tokenizer->token_list), &ts);
-      tokenizer->token_ptr_list[index] =
-        vector_at(&((String*)vector_at(&(tokenizer->token_list), index))->string_vector, 0);
+      RainbowString ts;
+      RainbowString_Initialize(&ts, token, tlen);
+      Call(tokenizer->token_list, PushBack, &ts);
+      tokenizer->token_ptr_list[index] = RainbowVector_At(&((RainbowString*)RainbowVector_At(&(tokenizer->token_list), index))->string_vector, 0);
       index += 1;
     }
   }
@@ -31,7 +30,8 @@ void tokenizer_tokenize(Tokenizer *tokenizer, char *s, size_t len) {
 
 const char* tokenizer_get(Tokenizer *tokenizer, int index)
 {
-  return string_c_str(vector_at(&(tokenizer->token_list), index));
+  RainbowString * string = Call(tokenizer->token_list, At, index);
+  return CallP(string, CStr);
 }
 
 char* const* tokenizer_get_list(Tokenizer *tokenizer)
@@ -41,22 +41,23 @@ char* const* tokenizer_get_list(Tokenizer *tokenizer)
 
 int tokenizer_get_count(Tokenizer *tokenizer)
 {
-  return vector_size(&(tokenizer->token_list));
+  return Call(tokenizer->token_list, Size);
 }
 
 void tokenizer_clear(Tokenizer *tokenizer)
 {
   memset(tokenizer->token_ptr_list, 0, TOKEN_MAX_COUNT * sizeof(char*));
-  size_t vsize = vector_size(&(tokenizer->token_list));
+  size_t vsize = Call(tokenizer->token_list, Size);
   for(int i = 0; i < vsize; ++i)
   {
-    string_destroy(vector_at(&(tokenizer->token_list), i));
+    RainbowString * string = Call(tokenizer->token_list, At, i);
+    CallP(string, Destroy);
   }
-  vector_clear(&(tokenizer->token_list));
+  Call(tokenizer->token_list, Clear);
 }
 
 void tokenizer_destroy(Tokenizer *tokenizer)
 {
   tokenizer_clear(tokenizer);
-  vector_destroy(&(tokenizer->token_list));
+  Call(tokenizer->token_list, Destroy);
 }
