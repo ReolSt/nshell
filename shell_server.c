@@ -223,6 +223,7 @@ void* Relay_clnt(void* str)
   int time=0;
   char out='a';
 
+  char prompt_buf[BUF_SIZE];
   char command_buf[BUF_SIZE];
   char output_buf[OUTPUT_BUF_SIZE];
   char message[30];
@@ -237,8 +238,6 @@ void* Relay_clnt(void* str)
     int i=0;
 
     pthread_mutex_lock(&mutex);
-
-
     for(i=0; i<recv_cnt;i++)
     {
       //recv_clnt에 UID 있는 지 검사
@@ -249,7 +248,6 @@ void* Relay_clnt(void* str)
       }
     }
     pthread_mutex_unlock(&mutex);
-
     pthread_mutex_lock(&mutex);
     for(i=0;i<handle_cnt;i++)
     {
@@ -277,53 +275,79 @@ void* Relay_clnt(void* str)
   }
 
   RainbowFileStream *recv_stream = Call(recv_stream_list, At, recv_user.socket_index);
-  // int recv_sock = recv_hfstream->descriptor;
-  // FILE *recv_stream = recv_hfstream->stream;
-
   RainbowFileStream *handle_stream = Call(handle_stream_list, At, handle_user.socket_index);
-  // int handle_sock = handle_hfstream->descriptor;
-  // FILE *handle_stream = handle_hfstream->stream;
-
   if(CallP(handle_stream, Printf, "%c\n", out) > 0)
   {
     printf("handler_clnt flag변환\n");
   }
-
+  else
+  {
+    printf("전송에 실패하였습니다.\n");
+  }
   while(1)
   {
-    if(CallP(handle_stream, Gets, command_buf, BUF_SIZE -1) != NULL)
+    int plength = 0;
+    if(CallP(recv_stream, Gets, prompt_buf, BUF_SIZE - 1) != NULL)
+    {
+      plength = atoi(prompt_buf);
+    }
+    else
+    {
+      printf("Prompt String의 라인수를 받아올 수 없습니다.\n");
+      printf("handle Client 접속종료.\n");
+      close_handle_clnt(handle_stream->descriptor, handle_user.socket_index);
+      close_recv_clnt(recv_stream->descriptor, recv_user.socket_index);
+      break;
+    }
+
+    if(CallP(handle_stream, Printf, "%d\n", plength) <= 0)
+    {
+      printf("Prompt String의 라인수를 보내는 데 실패하였습니다.\n");
+    }
+
+    for(int i = 0; i < plength; ++i)
+    {
+      if(CallP(recv_stream, Gets, prompt_buf, BUF_SIZE - 1) != NULL)
+      {
+        if(CallP(handle_stream, Printf, "%s", prompt_buf) < strlen(prompt_buf))
+        {
+          printf("Prompt String 전송에 오류가 발생하였습니다.\n");
+        }
+      }
+      else
+      {
+        printf("Prompt String을 받아오는 데 실패했습니다.\n");
+      }
+    }
+
+    if(CallP(handle_stream, Gets, command_buf, BUF_SIZE - 1) != NULL)
     {
       printf("recv로 송신 : %s\n",command_buf);
       int result = CallP(recv_stream, Printf, "%s", command_buf);
       if(result == strlen(command_buf))
       {
-        printf("recv로 송신 성공\n");
+        printf("recv로 송신에 성공하였습니다..\n");
       }
       else
       {
-        if(result <= 0)
-        {
-          printf("handle Client 접속종료\n");
-          close_handle_clnt(handle_stream->descriptor, handle_user.socket_index);
-          break;
-        }
-        else
-        {
-          printf("recv로 송신 오류\n");
-        }
+        printf("recv로의 송신에 오류가 발생하였습니다.\n");
+        printf("recv Client가 접속을 종료한 것 같습니다.\n");
+        close_handle_clnt(handle_stream->descriptor, handle_user.socket_index);
+        close_recv_clnt(recv_stream->descriptor, recv_user.socket_index);
       }
     }
     else
     {
-      printf("handle Client 접속종료\n");
+      printf("handle Client가 접속을 종료한 것 같습니다.\n");
       close_handle_clnt(handle_stream->descriptor, handle_user.socket_index);
+      close_recv_clnt(recv_stream->descriptor, recv_user.socket_index);
       break;
     }
 
     int dlength = 0;
     if(CallP(recv_stream, Gets, output_buf, OUTPUT_BUF_SIZE) == NULL)
     {
-      printf("recv로부터 output 길이 받아오기 실패\n");
+      printf("recv로부터 output 길이 받아오기에 실패하였습니다.\n");
     }
     else
     {
@@ -344,7 +368,7 @@ void* Relay_clnt(void* str)
     int vlength = Call(result, Size);
     if(vlength < dlength)
     {
-      printf("recv로부터 모든 데이터를 받아오지 못했습니다\n");
+      printf("recv로부터 모든 데이터를 받아오지 못했습니다.\n");
       for(int i = vlength; i < dlength; ++i)
       {
         RainbowString string;
@@ -360,15 +384,15 @@ void* Relay_clnt(void* str)
     {
       RainbowString *string = Call(result, At, i);
       const char *cstring = CallP(string, CStr);
-      printf("handle로 송신\n%s", cstring);
+      printf("handle로 송신합니다.\n%s", cstring);
       if(CallP(handle_stream, Printf, "%s", cstring) == strlen(cstring))
       {
         count += 1;
-        printf("handle로 송신 성공\n");
+        printf("handle로 송신에 성공하였습니다.\n");
       }
       else
       {
-        printf("handle로 송신 오류\n");
+        printf("handle로의 송신에 오류가 발생하였습니다.\n");
       }
       CallP(string, Destroy);
     }
@@ -376,26 +400,21 @@ void* Relay_clnt(void* str)
     Call(result, Destroy);
     if(count < vlength)
     {
-      printf("handle로 모든 데이터를 전송하지 못했습니다\n");
+      printf("handle로 모든 데이터를 전송하지 못했습니다.\n");
     }
     if(dlength == 0)
     {
-      pthread_mutex_lock(&mutex);
-      printf("recv Client 접속종료 Msg : %s\n", message);
 
-      pthread_mutex_unlock(&mutex);
+      printf("recv Client가 접속을 종료하였습니다.\n", message);
+      close_handle_clnt(handle_stream->descriptor, handle_user.socket_index);
       close_recv_clnt(recv_stream->descriptor, recv_user.socket_index);
       break;
     }
   }
 
   // 쓰레드 종료 단계, 중계되고 있는 소켓들 종료, 배열 정리
-  pthread_mutex_lock(&mutex);
   pop_UID_array(UID);
-
   printf("Thread End : handle_cnt : %d, recv_cnt : %d, thread_cnt : %d\n\n\n", handle_cnt, recv_cnt, thread_cnt);
-  pthread_mutex_unlock(&mutex);
-
   return NULL;
 }
 
@@ -407,6 +426,7 @@ void error_handling(char *msg) {
 
 void close_handle_clnt(int sock, int index)
 {
+  pthread_mutex_lock(&mutex);
   int h_sock=sock;
   int i=index;
 
@@ -417,12 +437,15 @@ void close_handle_clnt(int sock, int index)
   }
   handle_cnt--;
   RainbowFileStream *stream = Call(handle_stream_list, At, index);
+  shutdown(CallP(stream, GetDescriptor), SHUT_RDWR);
   CallP(stream, Destroy);
   Call(handle_stream_list, Remove, index);
+  pthread_mutex_unlock(&mutex);
 }
 
 void close_recv_clnt(int sock, int index)
 {
+  pthread_mutex_lock(&mutex);
   int r_sock=sock;
   int i=index;
 
@@ -433,12 +456,15 @@ void close_recv_clnt(int sock, int index)
   }
   recv_cnt--;
   RainbowFileStream *stream = Call(recv_stream_list, At, index);
+  shutdown(CallP(stream, GetDescriptor), SHUT_RDWR);
   CallP(stream, Destroy);
   Call(recv_stream_list, Remove, index);
+  pthread_mutex_unlock(&mutex);
 }
 
 void pop_UID_array(char str[])
 {
+  pthread_mutex_lock(&mutex);
   char UID[30];
   strcpy(UID, str);
   int index=0;
@@ -456,4 +482,5 @@ void pop_UID_array(char str[])
     strcpy(thread_UID[i], thread_UID[i+1]);
   }
   thread_cnt--;
+  pthread_mutex_unlock(&mutex);
 }

@@ -20,7 +20,8 @@ void RainbowString_Initialize(RainbowString *rainbow_string, const char *s, size
   rainbow_string->Initialize = RainbowString_Initialize;
   rainbow_string->IsInitialized = RainbowString_IsInitialized;
   rainbow_string->Append = RainbowString_Append;
-  rainbow_string->Pop = RainbowString_Pop;
+  rainbow_string->PushBack = RainbowString_PushBack;
+  rainbow_string->PopBack = RainbowString_PopBack;
   rainbow_string->Insert = RainbowString_Insert;
   rainbow_string->Remove = RainbowString_Remove;
   rainbow_string->Clear = RainbowString_Clear;
@@ -53,19 +54,28 @@ void RainbowString_Destroy(RainbowString *rainbow_string)
   rainbow_string->size = 0;
 }
 
-void RainbowString_Append(RainbowString *rainbow_string, char ch)
+void RainbowString_PushBack(RainbowString *rainbow_string, char ch)
 {
   RainbowVector_PushBack(&(rainbow_string->string_vector), &ch);
   rainbow_string->size += 1;
   __RainbowString_ExtendForNullTerminating(rainbow_string);
 }
 
-void RainbowString_Pop(RainbowString *rainbow_string)
+
+void RainbowString_PopBack(RainbowString *rainbow_string)
 {
   if(rainbow_string->size > 0)
   {
     RainbowVector_PopBack(&(rainbow_string->string_vector));
     rainbow_string->size -= 1;
+  }
+}
+
+void RainbowString_Append(RainbowString *rainbow_string, const char * s, size_t length)
+{
+  for(int i = 0; i < length; ++i)
+  {
+    RainbowString_PushBack(rainbow_string, s[i]);
   }
 }
 

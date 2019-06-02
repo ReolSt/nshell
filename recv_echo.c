@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 
 	sprintf(message, "%d, %s\n", flag, UID);
 
-	if(fprintf(file, "%s", message)==1) {
+	if(fprintf(file, "%s", message) < strlen(message)) {
 		printf("fprintf() error \n");
 	}
 	else {

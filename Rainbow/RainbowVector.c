@@ -175,6 +175,7 @@ void RainbowVector_PopBack(RainbowVector *rainbow_vector)
 {
   if(rainbow_vector->size > 0)
   {
+    memset((char*)rainbow_vector->array + (rainbow_vector->size - 1) * rainbow_vector->unitsize, 0, rainbow_vector->unitsize);
     rainbow_vector->size -= 1;
   }
 }
