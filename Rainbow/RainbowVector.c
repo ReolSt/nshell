@@ -49,10 +49,9 @@ void __RainbowVector_LShift(RainbowVector *rainbow_vector, int index)
 
 void RainbowVector_Initialize(RainbowVector *rainbow_vector, size_t unitsize)
 {
-  rainbow_vector->initialized = 1;
   rainbow_vector->unitsize = unitsize;
   rainbow_vector->size = 0;
-  rainbow_vector->capacity = HANZO_VECTOR_DEFAULT_CAPACITY;
+  rainbow_vector->capacity = RAINBOW_VECTOR_DEFAULT_CAPACITY;
   rainbow_vector->array = calloc(rainbow_vector->capacity, rainbow_vector->unitsize);
 //function pointers
   rainbow_vector->Initialize = RainbowVector_Initialize;
@@ -70,6 +69,8 @@ void RainbowVector_Initialize(RainbowVector *rainbow_vector, size_t unitsize)
   rainbow_vector->Capacity = RainbowVector_Capacity;
   rainbow_vector->PushBack = RainbowVector_PushBack;
   rainbow_vector->PopBack = RainbowVector_PopBack;
+//
+  rainbow_vector->initialized = 1;
 }
 
 int RainbowVector_IsInitialized(RainbowVector *rainbow_vector)
@@ -94,7 +95,7 @@ void RainbowVector_Destroy(RainbowVector *rainbow_vector)
 
 void RainbowVector_Shrink(RainbowVector *rainbow_vector)
 {
-  if(rainbow_vector->capacity > HANZO_VECTOR_DEFAULT_CAPACITY)
+  if(rainbow_vector->capacity > RAINBOW_VECTOR_DEFAULT_CAPACITY)
   {
     RainbowVector_Resize(rainbow_vector, rainbow_vector->size + 1);
   }

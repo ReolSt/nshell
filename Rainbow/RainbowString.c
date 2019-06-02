@@ -16,7 +16,6 @@ void RainbowString_Initialize(RainbowString *rainbow_string, const char *s, size
   RainbowVector_PushBack(&(rainbow_string->string_vector), s + i);
   }
   rainbow_string->size = length;
-  rainbow_string->initialized = 1;
 //function pointers
   rainbow_string->Initialize = RainbowString_Initialize;
   rainbow_string->IsInitialized = RainbowString_IsInitialized;
@@ -32,6 +31,8 @@ void RainbowString_Initialize(RainbowString *rainbow_string, const char *s, size
   rainbow_string->Front = RainbowString_Front;
   rainbow_string->Back = RainbowString_Back;
   rainbow_string->Length =RainbowString_Length;
+//
+  rainbow_string->initialized = 1;
 }
 
 int RainbowString_IsInitialized(RainbowString *rainbow_string)

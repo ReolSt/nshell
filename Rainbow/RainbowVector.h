@@ -1,10 +1,14 @@
-#ifndef HANZO_VECTOR_H
-#define HANZO_VECTOR_H
+#ifndef RAINBOW_VECTOR_H
+#define RAINBOW_VECTOR_H
+
 #include <stdlib.h>
 #include <string.h>
 #include <memory.h>
 #include <stdlib.h>
-#define HANZO_VECTOR_DEFAULT_CAPACITY 64
+
+#include "RainbowCall.h"
+
+#define RAINBOW_VECTOR_DEFAULT_CAPACITY 64
 
 typedef struct __Rainbow_Vector{
   int initialized;
@@ -12,6 +16,7 @@ typedef struct __Rainbow_Vector{
   size_t capacity;
   size_t size;
   void *array;
+
   void (*Initialize)(struct __Rainbow_Vector *, size_t);
   int (*IsInitialized)(struct __Rainbow_Vector *);
   void (*Clear)(struct __Rainbow_Vector *);

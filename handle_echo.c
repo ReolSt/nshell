@@ -94,12 +94,35 @@ int main(int argc, char *argv[])
 				fprintf(file, message);
 
 				// 문제의 부분 fgets..
-				if((fgets(message, BUF_SIZE, file))!=NULL && strlen(message) == message_len) {
-					printf("Message from server: %s", message);
+				int dlength = 0;
+				if(fgets(message, BUF_SIZE, file) != NULL)
+				{
+					dlength = atoi(message);
 				}
 				else
 				{
-					printf("상대 측 클라이언트와의 연결이 끊겼습니다.\n");
+					printf("서버로부터 output 길이를 받아오는데 실패했습니다.\n");
+				}
+				int count = 0;
+				for(int i = 0; i < dlength; ++i)
+				{
+					if(fgets(message, BUF_SIZE, file)!=NULL)
+					{
+						count += 1;
+						printf("%s", message);
+					}
+					else
+					{
+						printf("데이터를 올바르게 수신하지 못했습니다.\n");
+					}
+				}
+				if(count < dlength)
+				{
+					printf("서버로부터 모든 데이터를 받아오는 데 실패하였습니다.\n");
+				}
+				if(dlength == 0)
+				{
+					printf("상대 측 클라이언트와의 연결이 끊긴 것 같습니다.\n");
 					relayFlag=0;
 					break;
 				}

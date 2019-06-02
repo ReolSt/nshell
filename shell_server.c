@@ -11,11 +11,14 @@
 
 #define MAX_CNT 100
 #define BUF_SIZE 100
+#define OUTPUT_BUF_SIZE 4096
 
 #include "Rainbow/RainbowCall.h"
 #include "Rainbow/RainbowVector.h"
 #include "Rainbow/RainbowString.h"
 #include "Rainbow/RainbowFileStream.h"
+#define Call RainbowCall
+#define CallP RainbowCallP
 
 typedef struct clnt_userdata {
   char UID[30];
@@ -134,7 +137,7 @@ int main(int argc, char *argv[]) {
 
         RainbowFileStream stream;
         RainbowFileStream_Initialize(&stream, clnt_sock, "r+");
-        RainbowCall(handle_stream_list, PushBack, &stream);
+        Call(handle_stream_list, PushBack, &stream);
 
         printf("handle client conntected : %d \n", handle_cnt);
 
@@ -164,7 +167,7 @@ int main(int argc, char *argv[]) {
 
         RainbowFileStream stream;
         RainbowFileStream_Initialize(&stream, clnt_sock, "r+");
-        RainbowCall(recv_stream_list, PushBack, &stream);
+        Call(recv_stream_list, PushBack, &stream);
 
         printf("recv client conntected : %d \n", recv_cnt);
 
@@ -221,15 +224,13 @@ void* Relay_clnt(void* str)
   char out='a';
 
   char command_buf[BUF_SIZE];
-  char output_buf[1000];
+  char output_buf[OUTPUT_BUF_SIZE];
   char message[30];
   int command_len;
   int output_len;
 
-
   strcpy(UID, (char*)str);
   strcpy(message, "Error\n");
-
 
   while(1)
   {
@@ -266,7 +267,6 @@ void* Relay_clnt(void* str)
       break;
     }
 
-
     sleep(1);
 
     if(time==300)
@@ -276,58 +276,115 @@ void* Relay_clnt(void* str)
     }
   }
 
-  RainbowFileStream *recv_hfstream = RainbowCall(recv_stream_list, At, recv_user.socket_index);
-  int recv_sock = recv_hfstream->descriptor;
-  FILE *recv_stream = recv_hfstream->stream;
+  RainbowFileStream *recv_stream = Call(recv_stream_list, At, recv_user.socket_index);
+  // int recv_sock = recv_hfstream->descriptor;
+  // FILE *recv_stream = recv_hfstream->stream;
 
-  RainbowFileStream *handle_hfstream = RainbowCall(handle_stream_list, At, handle_user.socket_index);
-  int handle_sock = handle_hfstream->descriptor;
-  FILE *handle_stream = handle_hfstream->stream;
+  RainbowFileStream *handle_stream = Call(handle_stream_list, At, handle_user.socket_index);
+  // int handle_sock = handle_hfstream->descriptor;
+  // FILE *handle_stream = handle_hfstream->stream;
 
-  setvbuf(recv_stream, NULL, _IOLBF, 0);
-  setvbuf(handle_stream, NULL, _IOLBF, 0);
-
-  if(fprintf(handle_stream, "%c\n", out) > 0)
+  if(CallP(handle_stream, Printf, "%c\n", out) > 0)
   {
     printf("handler_clnt flag변환\n");
   }
 
   while(1)
   {
-    memset(&command_buf, 0, sizeof(command_buf));
-    if(fgets(command_buf, BUF_SIZE - 1, handle_stream) != NULL)
+    if(CallP(handle_stream, Gets, command_buf, BUF_SIZE -1) != NULL)
     {
       printf("recv로 송신 : %s\n",command_buf);
-      fprintf(recv_stream, "%s", command_buf);
+      int result = CallP(recv_stream, Printf, "%s", command_buf);
+      if(result == strlen(command_buf))
+      {
+        printf("recv로 송신 성공\n");
+      }
+      else
+      {
+        if(result <= 0)
+        {
+          printf("handle Client 접속종료\n");
+          close_handle_clnt(handle_stream->descriptor, handle_user.socket_index);
+          break;
+        }
+        else
+        {
+          printf("recv로 송신 오류\n");
+        }
+      }
     }
     else
     {
       printf("handle Client 접속종료\n");
-      close_handle_clnt(handle_sock, handle_user.socket_index);
+      close_handle_clnt(handle_stream->descriptor, handle_user.socket_index);
       break;
     }
 
-    memset(&output_buf, 0, sizeof(output_buf));
-    if(fgets(output_buf, 999, recv_stream) != NULL)
+    int dlength = 0;
+    if(CallP(recv_stream, Gets, output_buf, OUTPUT_BUF_SIZE) == NULL)
     {
-      printf("handle로 송신 : %s\n", output_buf);
-      fprintf(handle_stream, "%s", output_buf);
+      printf("recv로부터 output 길이 받아오기 실패\n");
     }
     else
     {
-      pthread_mutex_lock(&mutex);
-      printf("recv Client 접속종료 Msg : %s\n", message);
-      if(fprintf(handle_stream, "\n") == 1)
+      dlength = atoi(output_buf);
+    }
+    RainbowVector result;
+    RainbowVector_Initialize(&result, sizeof(RainbowString));
+    for(int i = 0; i < dlength; ++i)
+    {
+      if(CallP(recv_stream, Gets, output_buf, OUTPUT_BUF_SIZE) != NULL)
       {
-        printf("fprintf() error\n");
+        RainbowString string;
+        RainbowString_Initialize(&string, output_buf, strlen(output_buf));
+        Call(result, PushBack, &string);
+      }
+    }
+
+    int vlength = Call(result, Size);
+    if(vlength < dlength)
+    {
+      printf("recv로부터 모든 데이터를 받아오지 못했습니다\n");
+      for(int i = vlength; i < dlength; ++i)
+      {
+        RainbowString string;
+        char *failure_message = "Server : Failed to Transfer Data\n";
+        RainbowString_Initialize(&string, failure_message, strlen(failure_message));
+        Call(result, PushBack, &string);
+      }
+    }
+    printf("전송할 라인의 수 = %d\n", dlength);
+    CallP(handle_stream, Printf, "%d\n", dlength);
+    int count = 0;
+    for(int i = 0; i < vlength; ++i)
+    {
+      RainbowString *string = Call(result, At, i);
+      const char *cstring = CallP(string, CStr);
+      printf("handle로 송신\n%s", cstring);
+      if(CallP(handle_stream, Printf, "%s", cstring) == strlen(cstring))
+      {
+        count += 1;
+        printf("handle로 송신 성공\n");
       }
       else
       {
-        printf("종료메시지 전송 : %s\n", message);
+        printf("handle로 송신 오류\n");
       }
+      CallP(string, Destroy);
+    }
+    printf("전송된 라인의 수 = %d\n", count);
+    Call(result, Destroy);
+    if(count < vlength)
+    {
+      printf("handle로 모든 데이터를 전송하지 못했습니다\n");
+    }
+    if(dlength == 0)
+    {
+      pthread_mutex_lock(&mutex);
+      printf("recv Client 접속종료 Msg : %s\n", message);
 
       pthread_mutex_unlock(&mutex);
-      close_recv_clnt(recv_sock, recv_user.socket_index);
+      close_recv_clnt(recv_stream->descriptor, recv_user.socket_index);
       break;
     }
   }
@@ -359,10 +416,9 @@ void close_handle_clnt(int sock, int index)
     handle_userdata[i]=handle_userdata[i+1];
   }
   handle_cnt--;
-  RainbowFileStream *stream = RainbowCall(handle_stream_list, At, index);
-  RainbowCallP(stream, Destroy);
-  RainbowCall(handle_stream_list, Remove, index);
-  close(h_sock);
+  RainbowFileStream *stream = Call(handle_stream_list, At, index);
+  CallP(stream, Destroy);
+  Call(handle_stream_list, Remove, index);
 }
 
 void close_recv_clnt(int sock, int index)
@@ -376,10 +432,9 @@ void close_recv_clnt(int sock, int index)
     recv_userdata[i]=recv_userdata[i+1];
   }
   recv_cnt--;
-  RainbowFileStream *stream = RainbowCall(recv_stream_list, At, index);
-  RainbowCallP(stream, Destroy);
-  RainbowCall(recv_stream_list, Remove, index);
-  close(r_sock);
+  RainbowFileStream *stream = Call(recv_stream_list, At, index);
+  CallP(stream, Destroy);
+  Call(recv_stream_list, Remove, index);
 }
 
 void pop_UID_array(char str[])
