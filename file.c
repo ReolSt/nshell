@@ -84,7 +84,7 @@ void history_update(History *history, const char *cmd, size_t len)
   {
       RainbowString cmd_string;
       RainbowString_Initialize(&cmd_string, cmd, len);
-      Call(cmd_string, Append, '\n');
+      Call(cmd_string, PushBack, '\n');
       Call(history->cmd_list, PushBack, &cmd_string);
       fprintf(history->history_file, "%s\n", Call(cmd_string, CStr));
       history->size += 1;

@@ -14,8 +14,9 @@ typedef struct __Rainbow_String
   int (*IsInitialized)(struct __Rainbow_String *);
   void (*Clear)(struct __Rainbow_String *);
   void (*Destroy)(struct __Rainbow_String *);
-  void (*Append)(struct __Rainbow_String *, const char);
-  void (*Pop)(struct __Rainbow_String *);
+  void (*Append)(struct __Rainbow_String *, const char *, size_t);
+  void (*PushBack)(struct __Rainbow_String *, char);
+  void (*PopBack)(struct __Rainbow_String *);
   void (*Insert)(struct __Rainbow_String *, int, const char);
   void (*Remove)(struct __Rainbow_String *, int);
   const char * (*CStr)(struct __Rainbow_String *);
@@ -31,8 +32,9 @@ void RainbowString_Initialize(RainbowString * rainbow_string, const char * s, si
 int RainbowString_IsInitialized(RainbowString * rainbow_string);
 void RainbowString_Clear(RainbowString * rainbow_string);
 void RainbowString_Destroy(RainbowString * rainbow_string);
-void RainbowString_Append(RainbowString * rainbow_string, char ch);
-void RainbowString_Pop(RainbowString * rainbow_string);
+void RainbowString_PushBack(RainbowString * rainbow_string, char ch);
+void RainbowString_PopBack(RainbowString * rainbow_string);
+void RainbowString_Append(RainbowString * rainbow_string, const char * s, size_t length);
 void RainbowString_Insert(RainbowString * rainbow_string, int index,  char ch);
 void RainbowString_Remove(RainbowString * rainbow_string, int index);
 const char * RainbowString_CStr(RainbowString * rainbow_string);

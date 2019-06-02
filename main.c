@@ -2,7 +2,8 @@
 
 int main(int argc, char *argv[])
 {
-  if(argc!=4) {
+  if(argc!=4)
+  {
 		printf("Usage : %s <IP> <port> <UID>\n", argv[0]);
 		exit(1);
 	}
@@ -14,17 +15,23 @@ int main(int argc, char *argv[])
        RainbowAddressFamily_IPv4
      ) < 0)
   {
-    perror("socket_tcp_create: ");
+    perror("RainbowSocketTCP_Initialize: ");
     exit(1);
   }
   Call(socket_tcp, SetPort, atoi(argv[2]));
   if(Call(socket_tcp, Connect, argv[1], strlen(argv[1]) < 0))
   {
-    perror("socket_tcp_connect: ");
+    perror("RainbowSocketTCP_Connect: ");
+    Call(socket_tcp, Destroy);
     exit(1);
   }
   RainbowFileStream * socket_file_stream = Call(socket_tcp, GetFileStream);
-  CallP(socket_file_stream, Printf, "0, %s\n", argv[3]);
+  if(CallP(socket_file_stream, Printf, "0, %s\n", argv[3]) <= 0)
+  {
+    printf("Failed to Transfer Flag, UID\n");
+    Call(socket_tcp, Destroy);
+    exit(1);
+  }
 
   int output_fd = make_tempfile(), stdout_backup, flag=1;
 
@@ -44,22 +51,44 @@ int main(int argc, char *argv[])
   setvbuf(output_file, NULL, _IOLBF, 0);
 
   char cmd[CMD_BUF_MAX_SIZE];
-  while(flag) {
+  while(flag)
+  {
     get_prompt(prompt_string);
-    // char *cmd = readline(prompt_string);
     printf("%s", prompt_string);
+    size_t prompt_length = strlen(prompt_string);
+    prompt_string[prompt_length++] = '\n';
+    prompt_string[prompt_length] = '\0';
+    int plength = 0;
+    char * next_ptr = strchr(prompt_string, '\n');
+    while(next_ptr != NULL)
+    {
+      plength += 1;
+      next_ptr = strchr(next_ptr + 1, '\n');
+    }
+
+    if(CallP(socket_file_stream, Printf, "%d\n", plength) <= 0)
+    {
+      printf("An Error occured during plength tranfer\n");
+      plength = 0;
+      break;
+    }
+
+    if(CallP(socket_file_stream, Printf, "%s", prompt_string) < prompt_length)
+    {
+      printf("An Error occured during prompt string tranfer\n");
+      break;
+    }
+
     if(CallP(socket_file_stream, Gets, cmd, CMD_BUF_MAX_SIZE - 1) == NULL)
     {
-      printf("Network Connection Lost\n");
+      printf("An Error occured while receiving command string\n");
       break;
     }
     printf("%s\n", cmd);
     int cmd_len = strlen(cmd);
 
     tokenizer_tokenize(&tokenizer, cmd, cmd_len);
-    // add_history(cmd);
     history_update(&history, cmd, cmd_len);
-    // free(cmd);
 
     swapout_stdout(&output_fd, &stdout_backup);
 

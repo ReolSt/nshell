@@ -1,6 +1,6 @@
 DEPEND_FILE = .depend
 
-CC = gcc -g
+CC = gcc
 SRCS = main.c file.c parsing.c system.c interpret.c Rainbow/RainbowVector.c Rainbow/RainbowString.c Rainbow/RainbowFileStream.c Rainbow/RainbowSocket.c
 OBJS = $(SRCS:%.c=%.o)
 
