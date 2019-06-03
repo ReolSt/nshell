@@ -45,7 +45,7 @@ typedef enum __Rainbow_Address_Family
   RainbowAddressFamily_AX25 = AF_AX25,
 #endif
 #ifdef AF_IPX
-  RainbowAddressFamily_IPX = AF_IPX
+  RainbowAddressFamily_IPX = AF_IPX,
 #endif
 #ifdef AF_APPLETALK
   RainbowAddressFamily_AppleTalk = AF_APPLETALK,
@@ -79,7 +79,7 @@ typedef enum __Protocol_Family
   RainbowProtocolFamily_AX25 = PF_AX25,
 #endif
 #ifdef PF_IPX
-  RainbowProtocolFamily_IPX = PF_IPX
+  RainbowProtocolFamily_IPX = PF_IPX,
 #endif
 #ifdef PF_APPLETALK
   RainbowProtocolFamily_AppleTalk = PF_APPLETALK,
