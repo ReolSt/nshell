@@ -123,5 +123,7 @@ const char *RainbowSocketTCP_GetAddress(RainbowSocketTCP * socket_tcp)
 void RainbowSocketTCP_Destroy(RainbowSocketTCP * socket_tcp)
 {
   RainbowString_Destroy(&(socket_tcp->address_RainbowString));
-  RainbowCall(socket_tcp->file_stream, Destroy);
+  int descriptor = RainbowCall(socket_tcp->file_stream, GetDescriptor);
+  shutdown(descriptor, SHUT_RDWR);
+  close(descriptor);
 }
