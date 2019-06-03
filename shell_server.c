@@ -405,7 +405,7 @@ void* Relay_clnt(void* str)
     if(dlength == 0)
     {
 
-      printf("recv Client가 접속을 종료하였습니다.\n", message);
+      printf("recv Client가 접속을 종료하였습니다.\n");
       close_handle_clnt(handle_stream->descriptor, handle_user.socket_index);
       close_recv_clnt(recv_stream->descriptor, recv_user.socket_index);
       break;
