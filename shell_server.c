@@ -341,6 +341,7 @@ void* Relay_clnt(void* str)
     }
   }
 
+  int flag = 1;
   RainbowFileStream *recv_stream = Call(recv_stream_list, At, recv_user.socket_index);
   RainbowFileStream *handle_stream = Call(handle_stream_list, At, handle_user.socket_index);
   if(CallP(handle_stream, Printf, "%c\n", out) > 0)
@@ -350,10 +351,10 @@ void* Relay_clnt(void* str)
   else
   {
     printf("UID : %s, 전송에 실패하였습니다.\n", UID);
-    close_handle_clnt(handle_stream->descriptor, handle_user.socket_index);
-    close_recv_clnt(recv_stream->descriptor, recv_user.socket_index);
+    flag = 0;
   }
-  while(1)
+
+  while(flag)
   {
     int plength = 0;
     if(CallP(recv_stream, Gets, prompt_buf, BUF_SIZE - 1) != NULL)
