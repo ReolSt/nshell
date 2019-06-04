@@ -335,7 +335,7 @@ void* Relay_clnt(void* str)
 
     if(time==WAIT_CLIENT_TIMEOUT)
     {
-      printf("쓰레드 대기시간 초과\n");
+      printf("UID : %s, 쓰레드 대기시간 초과\n", UID);
       pop_UID_array(UID);
       return NULL;
     }
