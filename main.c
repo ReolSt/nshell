@@ -33,7 +33,11 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  int output_fd = make_tempfile(), stdout_backup, flag=1;
+  int output_fd = make_tempfile(),
+      error_fd = make_tempfile(),
+      stdout_backup,
+      stderr_backup,
+      flag=1;
 
   char output_buf[OUTPUT_BUF_MAX_SIZE],
        prompt_string[PROMPT_STRING_MAX_SIZE];
@@ -47,8 +51,13 @@ int main(int argc, char *argv[])
   InterpretContext icontext;
   interpret_context_init(&icontext, &history, &tokenizer);
 
+  FILE * error_file = fdopen(error_fd, "r+");
+  setvbuf(error_file, NULL, _IOLBF, 0);
+
   FILE *output_file = fdopen(output_fd, "r+");
   setvbuf(output_file, NULL, _IOLBF, 0);
+
+
 
   char cmd[CMD_BUF_MAX_SIZE];
   while(flag)
@@ -82,6 +91,7 @@ int main(int argc, char *argv[])
     if(CallP(socket_file_stream, Gets, cmd, CMD_BUF_MAX_SIZE - 1) == NULL)
     {
       printf("An Error occured while receiving command string\n");
+      printf("Recv Client maybe disconnected.\n");
       break;
     }
     printf("%s\n", cmd);
@@ -90,21 +100,30 @@ int main(int argc, char *argv[])
     tokenizer_tokenize(&tokenizer, cmd, cmd_len);
     history_update(&history, cmd, cmd_len);
 
-    swapout_stdout(&output_fd, &stdout_backup);
+    swapout_descriptor(STDERR_FILENO, &error_fd, &stderr_backup);
+    swapout_descriptor(STDOUT_FILENO, &output_fd, &stdout_backup);
 
-    off_t prev = lseek(STDOUT_FILENO, 0, SEEK_CUR);
+    off_t prev_stderr = lseek(STDERR_FILENO, 0, SEEK_CUR);
+    off_t prev_stdout = lseek(STDOUT_FILENO, 0, SEEK_CUR);
+
     if(tokenizer_get_count(&tokenizer) > 0)
     {
       flag = interpret(&icontext);
     }
     puts("");
+    fputs("", output_file);
 
-    off_t current = lseek(STDOUT_FILENO, 0, SEEK_CUR);
-    off_t offlen = current - prev;
+    off_t current_stderr = lseek(STDERR_FILENO, 0, SEEK_CUR);
+    off_t offlen_stderr = current_stderr - prev_stderr;
 
-    lseek(STDOUT_FILENO, prev, SEEK_SET);
+    off_t current_stdout = lseek(STDOUT_FILENO, 0, SEEK_CUR);
+    off_t offlen_stdout = current_stdout - prev_stdout;
 
-    swapin_stdout(&output_fd, &stdout_backup);
+    lseek(STDERR_FILENO, prev_stderr, SEEK_SET);
+    lseek(STDOUT_FILENO, prev_stdout, SEEK_SET);
+
+    swapin_descriptor(STDERR_FILENO, &error_fd, &stderr_backup);
+    swapin_descriptor(STDOUT_FILENO, &output_fd, &stdout_backup);
 
     RainbowVector result;
     RainbowVector_Initialize(&result, sizeof(RainbowString));
@@ -113,35 +132,54 @@ int main(int argc, char *argv[])
     char * start_message = "\x1B[36mRecvClient : Command Result\x1B[0m\n";
     RainbowString_Initialize(&string, start_message, strlen(start_message));
     Call(result, PushBack, &string);
-    while(offlen  > 0 && fgets(output_buf, OUTPUT_BUF_MAX_SIZE, output_file) != NULL)
+
+    while(offlen_stderr > 0 && fgets(output_buf, OUTPUT_BUF_MAX_SIZE, error_file) != NULL)
     {
       RainbowString string;
       RainbowString_Initialize(&string, output_buf, strlen(output_buf));
       Call(result, PushBack, &string);
-      offlen -= strlen(output_buf);
+      printf("%s", output_buf);
+      offlen_stderr -= strlen(output_buf);
     }
 
+    while(offlen_stdout > 0 && fgets(output_buf, OUTPUT_BUF_MAX_SIZE, output_file) != NULL)
+    {
+      RainbowString string;
+      RainbowString_Initialize(&string, output_buf, strlen(output_buf));
+      Call(result, PushBack, &string);
+      printf("%s", output_buf);
+      offlen_stdout -= strlen(output_buf);
+    }
 
     size_t vlength = Call(result, Size);
-    CallP(socket_file_stream, Printf, "%d\n", vlength);
+    if(CallP(socket_file_stream, Printf, "%d\n", vlength) <= 0)
+    {
+      printf("failed to transfer line.\n");
+      break;
+    }
     for(int i = 0; i < vlength; ++i)
     {
       RainbowString * string = Call(result, At, i);
       const char * cstring = CallP(string, CStr);
       printf("%s", cstring);
-      CallP(socket_file_stream, Printf, "%s", cstring);
+      if(CallP(socket_file_stream, Printf, "%s", cstring) < strlen(cstring))
+      {
+        printf("failed to transfer line.\n");
+      }
       CallP(string, Destroy);
     }
     Call(result, Destroy);
 
+    fflush(stderr);
     fflush(stdout);
+
+    lseek(error_fd, 0, SEEK_END);
     lseek(output_fd, 0, SEEK_END);
   }
-
-  tokenizer_destroy(&tokenizer);
   fclose(output_file);
+  fclose(error_file);
+  tokenizer_destroy(&tokenizer);
   history_close(&history);
   remove_tempfile_all();
-
   Call(socket_tcp, Destroy);
 }

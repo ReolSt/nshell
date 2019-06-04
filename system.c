@@ -11,19 +11,19 @@ void replace_home_with_tilde(char *s)
   }
 }
 
-void swapout_stdout(int *fd, int *backup)
+void swapout_descriptor(int original, int *fd, int *backup)
 {
-  *backup = dup(STDOUT_FILENO);
-  close(STDOUT_FILENO);
-  dup2(*fd, STDOUT_FILENO);
+  *backup = dup(original);
+  close(original);
+  dup2(*fd, original);
   close(*fd);
 }
 
-void swapin_stdout(int *fd, int *backup)
+void swapin_descriptor(int original, int *fd, int *backup)
 {
-  dup2(STDOUT_FILENO, *fd);
-  close(STDOUT_FILENO);
-  dup2(*backup, STDOUT_FILENO);
+  dup2(original, *fd);
+  close(original);
+  dup2(*backup, original);
   close(*backup);
 }
 

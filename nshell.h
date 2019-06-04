@@ -36,8 +36,8 @@
 #define WHT   "\x1B[37m"
 #define RESET "\x1B[0m"
 void replace_home_with_tilde(char *s);
-void swapout_stdout(int *fd, int *backup);
-void swapin_stdout(int *fd, int *backup);
+void swapout_descriptor(int original, int *fd, int *backup);
+void swapin_descriptor(int original, int *fd, int *backup);
 int get_prompt(char *prompt_buf);
 
 //FILE
