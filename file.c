@@ -29,14 +29,14 @@ int history_open(History *history)
     return 0;
   }
   history->history_file = history_file;
-  RainbowString_Initialize(&(history->history_path), history_path, strlen(history_path));
-  RainbowVector_Initialize(&(history->cmd_list), sizeof(RainbowString));
+  AirForceString_Initialize(&(history->history_path), history_path, strlen(history_path));
+  AirForceVector_Initialize(&(history->cmd_list), sizeof(AirForceString));
   char cmd_buf[CMD_BUF_MAX_SIZE];
   fseek(history->history_file, 0, SEEK_SET);
   while(fgets(cmd_buf, CMD_BUF_MAX_SIZE - 1, history_file) != NULL)
   {
-    RainbowString cmd_string;
-    RainbowString_Initialize(&cmd_string, cmd_buf, strlen(cmd_buf));
+    AirForceString cmd_string;
+    AirForceString_Initialize(&cmd_string, cmd_buf, strlen(cmd_buf));
     Call(history->cmd_list, PushBack, &cmd_string);
     history->size += 1;
   }
@@ -49,7 +49,7 @@ void history_close(History * history)
   int len = Call(history->cmd_list, Size);
   for(int i = 0; i < len; ++i)
   {
-    RainbowString * string = Call(history->cmd_list, At, i);
+    AirForceString * string = Call(history->cmd_list, At, i);
     CallP(string, Destroy);
   }
   Call(history->cmd_list, Destroy);
@@ -63,13 +63,13 @@ void history_close(History * history)
 
 const char * history_get_by_index(History *history, int index)
 {
-  RainbowString * string = Call(history->cmd_list ,At, index);
+  AirForceString * string = Call(history->cmd_list ,At, index);
   return CallP(string, CStr);
 }
 
 const char * hitory_get_last(History *history)
 {
-  RainbowString * string = Call(history->cmd_list, At, history->size - 1);
+  AirForceString * string = Call(history->cmd_list, At, history->size - 1);
   return CallP(string, CStr);
 }
 
@@ -82,8 +82,8 @@ void history_update(History *history, const char *cmd, size_t len)
 {
   if(len)
   {
-      RainbowString cmd_string;
-      RainbowString_Initialize(&cmd_string, cmd, len);
+      AirForceString cmd_string;
+      AirForceString_Initialize(&cmd_string, cmd, len);
       Call(cmd_string, PushBack, '\n');
       Call(history->cmd_list, PushBack, &cmd_string);
       fprintf(history->history_file, "%s\n", Call(cmd_string, CStr));

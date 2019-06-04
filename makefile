@@ -1,7 +1,7 @@
 DEPEND_FILE = .depend
 
 CC = gcc
-SRCS = main.c file.c parsing.c system.c interpret.c Rainbow/RainbowVector.c Rainbow/RainbowString.c Rainbow/RainbowFileStream.c Rainbow/RainbowSocket.c
+SRCS = main.c file.c parsing.c system.c interpret.c AirForce/AirForceVector.c AirForce/AirForceString.c AirForce/AirForceFileStream.c AirForce/AirForceSocket.c
 OBJS = $(SRCS:%.c=%.o)
 
 LIBS = -lreadline

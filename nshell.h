@@ -11,14 +11,14 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#include "Rainbow/RainbowSocket.h"
-#include "Rainbow/RainbowCall.h"
-#include "Rainbow/RainbowVector.h"
-#include "Rainbow/RainbowString.h"
-#include "Rainbow/RainbowFileStream.h"
+#include "AirForce/AirForceSocket.h"
+#include "AirForce/AirForceCall.h"
+#include "AirForce/AirForceVector.h"
+#include "AirForce/AirForceString.h"
+#include "AirForce/AirForceFileStream.h"
 
-#define Call RainbowCall
-#define CallP RainbowCallP
+#define Call AirForceCall
+#define CallP AirForceCallP
 
 #define CMD_BUF_MAX_SIZE 512
 #define OUTPUT_BUF_MAX_SIZE 16384
@@ -48,8 +48,8 @@ void remove_tempfile_all();
 typedef struct _history
 {
   int size;
-  RainbowString history_path;
-  RainbowVector cmd_list;
+  AirForceString history_path;
+  AirForceVector cmd_list;
   FILE *history_file;
 } History;
 
@@ -65,7 +65,7 @@ void history_update(History *history, const char *cmd, size_t len);
 typedef struct _Tokenizer
 {
   char *token_ptr_list[TOKEN_MAX_COUNT];
-  RainbowVector token_list;
+  AirForceVector token_list;
 } Tokenizer;
 
 void tokenizer_init(Tokenizer *tokenizer);

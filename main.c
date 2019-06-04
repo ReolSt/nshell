@@ -7,25 +7,25 @@ int main(int argc, char *argv[])
 		printf("Usage : %s <IP> <port> <UID>\n", argv[0]);
 		exit(1);
 	}
-  RainbowSocketTCP socket_tcp;
-  if(RainbowSocketTCP_Initialize
+  AirForceSocketTCP socket_tcp;
+  if(AirForceSocketTCP_Initialize
      (
        &socket_tcp,
-       RainbowProtocolFamily_IPv4,
-       RainbowAddressFamily_IPv4
+       AirForceProtocolFamily_IPv4,
+       AirForceAddressFamily_IPv4
      ) < 0)
   {
-    perror("RainbowSocketTCP_Initialize: ");
+    perror("AirForceSocketTCP_Initialize: ");
     exit(1);
   }
   Call(socket_tcp, SetPort, atoi(argv[2]));
   if(Call(socket_tcp, Connect, argv[1], strlen(argv[1]) < 0))
   {
-    perror("RainbowSocketTCP_Connect: ");
+    perror("AirForceSocketTCP_Connect: ");
     Call(socket_tcp, Destroy);
     exit(1);
   }
-  RainbowFileStream * socket_file_stream = Call(socket_tcp, GetFileStream);
+  AirForceFileStream * socket_file_stream = Call(socket_tcp, GetFileStream);
   if(CallP(socket_file_stream, Printf, "0, %s\n", argv[3]) <= 0)
   {
     printf("Failed to Transfer Flag, UID\n");
@@ -125,18 +125,18 @@ int main(int argc, char *argv[])
     swapin_descriptor(STDERR_FILENO, &error_fd, &stderr_backup);
     swapin_descriptor(STDOUT_FILENO, &output_fd, &stdout_backup);
 
-    RainbowVector result;
-    RainbowVector_Initialize(&result, sizeof(RainbowString));
+    AirForceVector result;
+    AirForceVector_Initialize(&result, sizeof(AirForceString));
 
-    RainbowString string;
+    AirForceString string;
     char * start_message = "\x1B[36mRecvClient : Command Result\x1B[0m\n";
-    RainbowString_Initialize(&string, start_message, strlen(start_message));
+    AirForceString_Initialize(&string, start_message, strlen(start_message));
     Call(result, PushBack, &string);
 
     while(offlen_stderr > 0 && fgets(output_buf, OUTPUT_BUF_MAX_SIZE, error_file) != NULL)
     {
-      RainbowString string;
-      RainbowString_Initialize(&string, output_buf, strlen(output_buf));
+      AirForceString string;
+      AirForceString_Initialize(&string, output_buf, strlen(output_buf));
       Call(result, PushBack, &string);
       printf("%s", output_buf);
       offlen_stderr -= strlen(output_buf);
@@ -144,8 +144,8 @@ int main(int argc, char *argv[])
 
     while(offlen_stdout > 0 && fgets(output_buf, OUTPUT_BUF_MAX_SIZE, output_file) != NULL)
     {
-      RainbowString string;
-      RainbowString_Initialize(&string, output_buf, strlen(output_buf));
+      AirForceString string;
+      AirForceString_Initialize(&string, output_buf, strlen(output_buf));
       Call(result, PushBack, &string);
       printf("%s", output_buf);
       offlen_stdout -= strlen(output_buf);
@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
     }
     for(int i = 0; i < vlength; ++i)
     {
-      RainbowString * string = Call(result, At, i);
+      AirForceString * string = Call(result, At, i);
       const char * cstring = CallP(string, CStr);
       printf("%s", cstring);
       if(CallP(socket_file_stream, Printf, "%s", cstring) < strlen(cstring))

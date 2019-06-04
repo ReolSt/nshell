@@ -3,7 +3,7 @@
 void tokenizer_init(Tokenizer *tokenizer)
 {
   memset(tokenizer->token_ptr_list, 0, TOKEN_MAX_COUNT * sizeof(char*));
-  RainbowVector_Initialize(&(tokenizer->token_list), sizeof(RainbowString));
+  AirForceVector_Initialize(&(tokenizer->token_list), sizeof(AirForceString));
 }
 
 void tokenizer_tokenize(Tokenizer *tokenizer, char *s, size_t len) {
@@ -19,10 +19,10 @@ void tokenizer_tokenize(Tokenizer *tokenizer, char *s, size_t len) {
     int tlen = strlen(token);
     if(tlen)
     {
-      RainbowString ts;
-      RainbowString_Initialize(&ts, token, tlen);
+      AirForceString ts;
+      AirForceString_Initialize(&ts, token, tlen);
       Call(tokenizer->token_list, PushBack, &ts);
-      tokenizer->token_ptr_list[index] = RainbowVector_At(&((RainbowString*)RainbowVector_At(&(tokenizer->token_list), index))->string_vector, 0);
+      tokenizer->token_ptr_list[index] = AirForceVector_At(&((AirForceString*)AirForceVector_At(&(tokenizer->token_list), index))->string_vector, 0);
       index += 1;
     }
   }
@@ -30,7 +30,7 @@ void tokenizer_tokenize(Tokenizer *tokenizer, char *s, size_t len) {
 
 const char* tokenizer_get(Tokenizer *tokenizer, int index)
 {
-  RainbowString * string = Call(tokenizer->token_list, At, index);
+  AirForceString * string = Call(tokenizer->token_list, At, index);
   return CallP(string, CStr);
 }
 
@@ -50,7 +50,7 @@ void tokenizer_clear(Tokenizer *tokenizer)
   size_t vsize = Call(tokenizer->token_list, Size);
   for(int i = 0; i < vsize; ++i)
   {
-    RainbowString * string = Call(tokenizer->token_list, At, i);
+    AirForceString * string = Call(tokenizer->token_list, At, i);
     CallP(string, Destroy);
   }
   Call(tokenizer->token_list, Clear);
