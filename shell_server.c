@@ -13,24 +13,28 @@
 #define BUF_SIZE 100
 #define OUTPUT_BUF_SIZE 4096
 
-#include "Rainbow/RainbowCall.h"
-#include "Rainbow/RainbowVector.h"
-#include "Rainbow/RainbowString.h"
-#include "Rainbow/RainbowFileStream.h"
-#define Call RainbowCall
-#define CallP RainbowCallP
+#include "AirForce/AirForceCall.h"
+#include "AirForce/AirForceVector.h"
+#include "AirForce/AirForceString.h"
+#include "AirForce/AirForceFileStream.h"
+#define Call AirForceCall
+#define CallP AirForceCallP
 
 typedef struct clnt_userdata {
   char UID[32];
   int socket_index;
 } clnt_userdata;
 
-void error_handling(char *msg);
+void error_handling(const char *msg);
 void *Relay_clnt(void *arg);
 void close_handle_clnt(int sock, int index);
 void close_recv_clnt(int sock, int index);
-void terminate_thread(int index);
-void pop_UID_array(char str[]);
+
+int search_handle_index_by_UID(const char * UID);
+AirForceFileStream * search_handle_file_stream_by_UID(const char * UID);
+int search_recv_index_by_UID(const char * UID);
+AirForceFileStream * search_recv_file_stream_by_UID(const char * UID);
+void pop_UID_array(const char * str);
 
 
 int recv_cnt  = 0; // 접속한 recv클라이언트 숫자
@@ -42,8 +46,8 @@ clnt_userdata recv_userdata[MAX_CNT];
 int recv_socks[MAX_CNT];
 int handle_socks[MAX_CNT]; // 구분하기전에 들어오는 배열.
 
-RainbowVector handle_stream_list;
-RainbowVector recv_stream_list;
+AirForceVector handle_stream_list;
+AirForceVector recv_stream_list;
 
 //생성된 쓰레드의 UID를 저장하는 배열
 char thread_UID[100][30];
@@ -55,8 +59,11 @@ typedef struct __Thread_Info
   int is_running;
   pthread_t thread_id;
 } ThreadInfo;
+int search_thread_index_by_UID(const char * UID);
 ThreadInfo * search_thread_info_by_UID(const char * UID);
-RainbowVector thread_info_list;
+int terminate_thread_by_UID(const char * UID);
+int terminate_thread_by_index(int index);
+AirForceVector thread_info_list;
 
 pthread_mutex_t mutex;
 
@@ -98,9 +105,9 @@ int main(int argc, char *argv[]) {
     error_handling("listen() error");
   }
 
-  RainbowVector_Initialize(&handle_stream_list, sizeof(RainbowFileStream));
-  RainbowVector_Initialize(&recv_stream_list, sizeof(RainbowFileStream));
-  RainbowVector_Initialize(&thread_info_list, sizeof(ThreadInfo));
+  AirForceVector_Initialize(&handle_stream_list, sizeof(AirForceFileStream));
+  AirForceVector_Initialize(&recv_stream_list, sizeof(AirForceFileStream));
+  AirForceVector_Initialize(&thread_info_list, sizeof(ThreadInfo));
 
   while(1)
   {
@@ -133,20 +140,21 @@ int main(int argc, char *argv[]) {
       pthread_mutex_lock(&mutex);
       for(int i = 0; i < handle_cnt; i++) {
         if(strcmp(UID, handle_userdata[i].UID) == 0) {
-          /* errorFlag = 1; */
-          /* printf("main : handle UID 중복, 다른 UID를 사용하십시오. \n"); */
           printf("main : handle UID 중복, 기존 연결을 종료합니다.\n");
           int index = handle_userdata[i].socket_index;
-          RainbowFileStream * stream = Call(handle_stream_list, At, index);
+          AirForceFileStream * stream = Call(handle_stream_list, At, index);
           close_handle_clnt(CallP(stream, GetDescriptor), index);
-          ThreadInfo * thread_info = search_thread_info_by_UID(UID);
-          if(thread_info != NULL)
+
+          int recv_index = search_recv_index_by_UID(UID);
+          stream = search_recv_file_stream_by_UID(UID);
+          if(recv_index >= 0 && stream != NULL)
           {
-            thread_info->is_running = 0;
+            close_recv_clnt(CallP(stream, GetDescriptor), recv_index);
           }
-          else
+
+          if(terminate_thread_by_UID(UID) == 0)
           {
-              printf("main : UID = %s의 Thread Info를 가져올 수 없습니다.\n", UID);
+            printf("Thread(UID = %s)에 종료 요청을 하는 데 실패했습니다.\n");
           }
           break;
         }
@@ -161,8 +169,8 @@ int main(int argc, char *argv[]) {
         handle_userdata[handle_cnt].socket_index = handle_cnt;
         handle_cnt++;
 
-        RainbowFileStream stream;
-        RainbowFileStream_Initialize(&stream, clnt_sock, "r+");
+        AirForceFileStream stream;
+        AirForceFileStream_Initialize(&stream, clnt_sock, "r+");
         Call(handle_stream_list, PushBack, &stream);
 
         printf("main : handle client conntected : %d \n", handle_cnt);
@@ -175,20 +183,21 @@ int main(int argc, char *argv[]) {
       pthread_mutex_lock(&mutex);
       for(int i = 0; i < recv_cnt; i++){
         if(strcmp(UID, recv_userdata[i].UID) == 0){
-          /* errorFlag = 1; */
-          /* printf("recv UID 중복, 다른 UID를 사용하십시오.\n"); */
           printf("main : recv UID 중복, 기존 연결을 종료합니다.\n");
           int index = recv_userdata[i].socket_index;
-          RainbowFileStream * stream = Call(recv_stream_list, At, index);
+          AirForceFileStream * stream = Call(recv_stream_list, At, index);
           close_recv_clnt(CallP(stream, GetDescriptor), index);
-          ThreadInfo * thread_info = search_thread_info_by_UID(UID);
-          if(thread_info != NULL)
+
+          int handle_index = search_handle_index_by_UID(UID);
+          stream = search_handle_file_stream_by_UID(UID);
+          if(handle_index >= 0 && stream != NULL)
           {
-            thread_info->is_running = 0;
+            close_handle_clnt(CallP(stream, GetDescriptor), handle_index);
           }
-          else
+
+          if(terminate_thread_by_UID(UID) == 0)
           {
-            printf("main : UID = %s의 Thread Info를 가져올 수 없습니다.\n", UID);
+            printf("Thread(UID = %s)에 종료 요청을 하는 데 실패했습니다.\n");
           }
           break;
         }
@@ -205,8 +214,8 @@ int main(int argc, char *argv[]) {
         recv_userdata[recv_cnt].socket_index = recv_cnt;
         recv_cnt++;
 
-        RainbowFileStream stream;
-        RainbowFileStream_Initialize(&stream, clnt_sock, "r+");
+        AirForceFileStream stream;
+        AirForceFileStream_Initialize(&stream, clnt_sock, "r+");
         Call(recv_stream_list, PushBack, &stream);
 
         printf("main : recv client conntected : %d \n", recv_cnt);
@@ -342,8 +351,8 @@ void* Relay_clnt(void* str)
   }
 
   int flag = 1;
-  RainbowFileStream *recv_stream = Call(recv_stream_list, At, recv_user.socket_index);
-  RainbowFileStream *handle_stream = Call(handle_stream_list, At, handle_user.socket_index);
+  AirForceFileStream *recv_stream = Call(recv_stream_list, At, recv_user.socket_index);
+  AirForceFileStream *handle_stream = Call(handle_stream_list, At, handle_user.socket_index);
   if(CallP(handle_stream, Printf, "%c\n", out) > 0)
   {
     printf("UID : %s, handler_clnt flag변환\n", UID);
@@ -427,14 +436,14 @@ void* Relay_clnt(void* str)
     {
       dlength = atoi(output_buf);
     }
-    RainbowVector result;
-    RainbowVector_Initialize(&result, sizeof(RainbowString));
+    AirForceVector result;
+    AirForceVector_Initialize(&result, sizeof(AirForceString));
     for(int i = 0; i < dlength; ++i)
     {
       if(CallP(recv_stream, Gets, output_buf, OUTPUT_BUF_SIZE) != NULL)
       {
-        RainbowString string;
-        RainbowString_Initialize(&string, output_buf, strlen(output_buf));
+        AirForceString string;
+        AirForceString_Initialize(&string, output_buf, strlen(output_buf));
         Call(result, PushBack, &string);
       }
     }
@@ -445,9 +454,9 @@ void* Relay_clnt(void* str)
       printf("UID : %s, recv로부터 모든 데이터를 받아오지 못했습니다.\n", UID);
       for(int i = vlength; i < dlength; ++i)
       {
-        RainbowString string;
+        AirForceString string;
         char *failure_message = "Server : Failed to Transfer Data\n";
-        RainbowString_Initialize(&string, failure_message, strlen(failure_message));
+        AirForceString_Initialize(&string, failure_message, strlen(failure_message));
         Call(result, PushBack, &string);
       }
     }
@@ -456,7 +465,7 @@ void* Relay_clnt(void* str)
     int count = 0;
     for(int i = 0; i < vlength; ++i)
     {
-      RainbowString *string = Call(result, At, i);
+      AirForceString *string = Call(result, At, i);
       const char *cstring = CallP(string, CStr);
       printf("UID : %s, handle로 송신합니다.\n%s", UID, cstring);
       if(CallP(handle_stream, Printf, "%s", cstring) == strlen(cstring))
@@ -494,26 +503,26 @@ void* Relay_clnt(void* str)
   return NULL;
 }
 
-void error_handling(char *msg) {
+void error_handling(const char *msg) {
   fputs(msg, stderr);
-  fputc('\n', stderr);  exit(1);
+  fputc('\n', stderr);
+  exit(1);
 }
 
 void close_handle_clnt(int sock, int index)
 {
   int h_sock=sock;
-  int i=index;
 
-  for(;i<handle_cnt-1;i++)
+  for(int i = index; i < handle_cnt - 1; i++)
   {
     handle_socks[i]=handle_socks[i+1];
     handle_userdata[i]=handle_userdata[i+1];
   }
   handle_cnt--;
-  RainbowFileStream *stream = Call(handle_stream_list, At, index);
+  AirForceFileStream *stream = Call(handle_stream_list, At, index);
   if(stream == NULL)
   {
-    printf("close_handle_clnt(%d, %d) : FileStream을 가져올 수 없습니다.\n", sock, index);
+    printf("close_handle_clnt(sock = %d, index = %d) : FileStream을 가져올 수 없습니다.\n", sock, index);
   }
   else
   {
@@ -527,19 +536,18 @@ void close_handle_clnt(int sock, int index)
 void close_recv_clnt(int sock, int index)
 {
   int r_sock=sock;
-  int i=index;
 
-  for(;i<recv_cnt-1;i++)
+  for(int i = index; i < recv_cnt - 1; i++)
   {
     recv_socks[i]=recv_socks[i+1];
     recv_userdata[i]=recv_userdata[i+1];
   }
   recv_cnt--;
 
-  RainbowFileStream *stream = Call(recv_stream_list, At, index);
+  AirForceFileStream *stream = Call(recv_stream_list, At, index);
   if(stream == NULL)
   {
-    printf("close_handle_clnt(%d, %d) : FileStream을 가져올 수 없습니다.\n", sock, index);
+    printf("close_handle_clnt(sock = %d, index = %d) : FileStream을 가져올 수 없습니다.\n", sock, index);
   }
   else
   {
@@ -549,22 +557,84 @@ void close_recv_clnt(int sock, int index)
   close(r_sock);
 }
 
-ThreadInfo * search_thread_info_by_UID(const char * UID)
+int search_thread_index_by_UID(const char * UID)
 {
   for(int i=0;i<thread_cnt;i++)
   {
     if(strcmp(UID,thread_UID[i])==0)
     {
-      ThreadInfo * thread_info = Call(thread_info_list, At, i);
-      return thread_info;
+      return i;
     }
   }
-  return NULL;
+  return -1;
 }
 
-void pop_UID_array(char str[])
+ThreadInfo * search_thread_info_by_UID(const char * UID)
 {
+  int index = search_thread_index_by_UID(UID);
+  return Call(thread_info_list, At, index);
+}
 
+int terminate_thread_by_UID(const char * UID)
+{
+  ThreadInfo * thread_info = search_thread_info_by_UID(UID);
+  if(thread_info == NULL)
+  {
+    return 0;
+  }
+  thread_info->is_running = 0;
+  return 1;
+}
+
+int terminate_thread_by_index(int index)
+{
+  ThreadInfo * thread_info = Call(thread_info_list, At, index);
+  if(thread_info == NULL)
+  {
+    return 0;
+  }
+  thread_info->is_running = 0;
+  return 1;
+}
+
+int search_handle_index_by_UID(const char * UID)
+{
+  for(int i = 0; i < Call(handle_stream_list, Size); ++i)
+  {
+    if(strcmp(handle_userdata[i].UID, UID) == 0)
+    {
+      return i;
+    }
+  }
+  return -1;
+}
+
+AirForceFileStream * search_handle_file_stream_by_UID(const char * UID)
+{
+  int index = search_handle_index_by_UID(UID);
+  return Call(handle_stream_list, At, handle_userdata[index].socket_index);
+}
+
+int search_recv_index_by_UID(const char * UID)
+{
+  for(int i = 0; i < Call(recv_stream_list, Size); ++i)
+  {
+    if(strcmp(recv_userdata[i].UID, UID) == 0)
+    {
+      return i;
+    }
+  }
+  return -1;
+}
+
+AirForceFileStream * search_recv_file_stream_by_UID(const char * UID)
+{
+  int index = search_recv_index_by_UID(UID);
+  return Call(recv_stream_list, At, recv_userdata[index].socket_index);
+}
+
+void pop_UID_array(const char * str)
+{
   char UID[32];
   strcpy(UID, str);
   int index=0;

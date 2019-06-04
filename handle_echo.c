@@ -7,13 +7,13 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#include "Rainbow/RainbowVector.h"
-#include "Rainbow/RainbowFileStream.h"
-#include "Rainbow/RainbowSocket.h"
-#include "Rainbow/RainbowString.h"
+#include "AirForce/AirForceVector.h"
+#include "AirForce/AirForceFileStream.h"
+#include "AirForce/AirForceSocket.h"
+#include "AirForce/AirForceString.h"
 
-#define Call RainbowCall
-#define CallP RainbowCallP
+#define Call AirForceCall
+#define CallP AirForceCallP
 
 #define BUF_SIZE 1024
 void error_handling(char *message);
@@ -34,24 +34,24 @@ int main(int argc, char *argv[])
 	}
 	strcpy(UID,argv[3]);
 
-	RainbowSocketTCP socket_tcp;
-  if(RainbowSocketTCP_Initialize
+	AirForceSocketTCP socket_tcp;
+  if(AirForceSocketTCP_Initialize
      (
        &socket_tcp,
-       RainbowProtocolFamily_IPv4,
-       RainbowAddressFamily_IPv4
+       AirForceProtocolFamily_IPv4,
+       AirForceAddressFamily_IPv4
      ) < 0)
   {
-    perror("RainbowSocketTCP_Initialize: ");
+    perror("AirForceSocketTCP_Initialize: ");
     exit(1);
   }
   Call(socket_tcp, SetPort, atoi(argv[2]));
   if(Call(socket_tcp, Connect, argv[1], strlen(argv[1]) < 0))
   {
-    perror("RainbowSocketTCP_Connect: ");
+    perror("AirForceSocketTCP_Connect: ");
     exit(1);
   }
-  RainbowFileStream * socket_file_stream = Call(socket_tcp, GetFileStream);
+  AirForceFileStream * socket_file_stream = Call(socket_tcp, GetFileStream);
   if(CallP(socket_file_stream, Printf, "%d, %s\n", insertFlag, argv[3]) <= 0)
 	{
 		printf("플래그, UID 전송에 오류가 발생하였습니다.\n");
@@ -98,8 +98,8 @@ int main(int argc, char *argv[])
 					Call(socket_tcp, Destroy);
 					exit(1);
 				}
-				RainbowString prompt_string;
-				RainbowString_Initialize(&prompt_string, "", 0);
+				AirForceString prompt_string;
+				AirForceString_Initialize(&prompt_string, "", 0);
 				for(int i = 0; i < plength; ++i)
 				{
 					if(CallP(socket_file_stream, Gets, message, BUF_SIZE - 1) != NULL)
