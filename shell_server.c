@@ -237,16 +237,16 @@ int main(int argc, char *argv[]) {
     }
 
     printf("main : thread_UID에 넣을 UID 값 : %s \n", UID);
-    
+
     ThreadInfo thread_info;
     thread_info.is_running = 1;
-    thread_info.thread_id = 1;
-    
+
     pthread_mutex_lock(&mutex);
     Call(thread_info_list, PushBack, &thread_info);
     strcpy(thread_UID[thread_cnt++], UID);
     pthread_mutex_unlock(&mutex);
     pthread_create(&thread_id, NULL, Relay_clnt, (void*)UID);
+    thread_info.thread_id = thread_id;
     pthread_detach(thread_id);
     printf("main : matching Thread num : %d \n", thread_cnt);
   }
@@ -292,7 +292,7 @@ void* Relay_clnt(void* str)
       return NULL;
     }
     if(thread_info->is_running == 0)
-    {      
+    {
       printf("UID : %s, Thread의 상태가 not running이므로 함수를 종료합니다.\n", UID);
       pop_UID_array(UID);
       pthread_mutex_unlock(&mutex);
@@ -312,7 +312,7 @@ void* Relay_clnt(void* str)
     }
     pthread_mutex_unlock(&mutex);
 
-    pthread_mutex_lock(&mutex);    
+    pthread_mutex_lock(&mutex);
     for(i=0; i<recv_cnt;i++)
     {
       //recv_clnt에 UID 있는 지 검사
@@ -435,7 +435,7 @@ void* Relay_clnt(void* str)
         RainbowString string;
         RainbowString_Initialize(&string, output_buf, strlen(output_buf));
         Call(result, PushBack, &string);
-      }             
+      }
     }
 
     int vlength = Call(result, Size);
@@ -517,10 +517,10 @@ void close_handle_clnt(int sock, int index)
   else
   {
     CallP(stream, Destroy);
-    Call(handle_stream_list, Remove, index);    
-  }  
+    Call(handle_stream_list, Remove, index);
+  }
   close(h_sock);
-  pthread_mutex_unlock(&mutex);  
+  pthread_mutex_unlock(&mutex);
 }
 
 void close_recv_clnt(int sock, int index)
@@ -534,7 +534,7 @@ void close_recv_clnt(int sock, int index)
     recv_userdata[i]=recv_userdata[i+1];
   }
   recv_cnt--;
-  
+
   RainbowFileStream *stream = Call(recv_stream_list, At, index);
   if(stream == NULL)
   {
@@ -543,8 +543,8 @@ void close_recv_clnt(int sock, int index)
   else
   {
     CallP(stream, Destroy);
-    Call(recv_stream_list, Remove, index);    
-  }  
+    Call(recv_stream_list, Remove, index);
+  }
   close(r_sock);
 }
 
