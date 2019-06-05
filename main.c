@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  int stdout_backup, flag=1;
+  int stdout_backup, runflag=1;
 
   char cmd[CMD_BUF_MAX_SIZE],
   output_buf[OUTPUT_BUF_MAX_SIZE],
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
   FileInfo * output_file = make_tempfile(&temp_file_list, "r+");
   int output_fd = Call(output_file->file_stream, GetDescriptor);
 
-  while(flag)
+  while(runflag)
   {
     get_prompt(prompt_string);
     printf("%s", prompt_string);
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 
     if(tokenizer_get_count(&tokenizer) > 0)
     {
-      flag = interpret(&icontext);
+      runflag = interpret(&icontext);
     }
     puts("");
 
@@ -114,41 +114,40 @@ int main(int argc, char *argv[])
     AirForceString_Initialize(&string, start_message, strlen(start_message));
     Call(result, PushBack, &string);
 
-    while(offlen_stdout > 0 &&
-      Call(output_file->file_stream, Gets, output_buf, OUTPUT_BUF_MAX_SIZE) != NULL)
-      {
-        AirForceString string;
-        AirForceString_Initialize(&string, output_buf, strlen(output_buf));
-        Call(result, PushBack, &string);
-        printf("%s", output_buf);
-        offlen_stdout -= strlen(output_buf);
-      }
+    while(offlen_stdout > 0 && Call(output_file->file_stream, Gets, output_buf, OUTPUT_BUF_MAX_SIZE) != NULL)
+    {
+      AirForceString string;
+      AirForceString_Initialize(&string, output_buf, strlen(output_buf));
+      Call(result, PushBack, &string);
+      printf("%s", output_buf);
+      offlen_stdout -= strlen(output_buf);
+    }
 
-      size_t vlength = Call(result, Size);
-      if(CallP(socket_file_stream, Printf, "%d\n", vlength) <= 0)
+    size_t vlength = Call(result, Size);
+    if(CallP(socket_file_stream, Printf, "%d\n", vlength) <= 0)
+    {
+      printf("failed to transfer line.\n");
+      break;
+    }
+    for(int i = 0; i < vlength; ++i)
+    {
+      AirForceString * string = Call(result, At, i);
+      const char * cstring = CallP(string, CStr);
+      printf("%s", cstring);
+      if(CallP(socket_file_stream, Printf, "%s", cstring) < strlen(cstring))
       {
         printf("failed to transfer line.\n");
-        break;
       }
-      for(int i = 0; i < vlength; ++i)
-      {
-        AirForceString * string = Call(result, At, i);
-        const char * cstring = CallP(string, CStr);
-        printf("%s", cstring);
-        if(CallP(socket_file_stream, Printf, "%s", cstring) < strlen(cstring))
-        {
-          printf("failed to transfer line.\n");
-        }
-        CallP(string, Destroy);
-      }
-      Call(result, Destroy);
-
-      fflush(stdout);
-
-      lseek(output_fd, 0, SEEK_END);
+      CallP(string, Destroy);
     }
-    tokenizer_destroy(&tokenizer);
-    history_close(&history);
-    remove_temp_file_all(&temp_file_list);
-    Call(socket_tcp, Destroy);
+    Call(result, Destroy);
+
+    fflush(stdout);
+
+    lseek(output_fd, 0, SEEK_END);
   }
+  tokenizer_destroy(&tokenizer);
+  history_close(&history);
+  remove_temp_file_all(&temp_file_list);
+  Call(socket_tcp, Destroy);
+}
