@@ -1,19 +1,45 @@
 #include "nshell.h"
-char tmpname_list[TMPNAME_LIST_MAX_SIZE][24];
-int tmpname_list_size;
-
-int make_tempfile() {
-  static char template[24]="/tmp/NshellXXXXXX";
-  strncpy(tmpname_list[tmpname_list_size], template, 24);
-  return mkstemp(tmpname_list[tmpname_list_size++]);
+void temp_file_list_initialize(AirForceVector * temp_file_list)
+{
+  AirForceVector_Initialize(temp_file_list, sizeof(FileInfo));
 }
 
-void remove_tempfile_all()
+FileInfo * make_tempfile(AirForceVector * temp_file_list, const char * mode)
 {
-  for(int i=0;i<tmpname_list_size;i++)
-    {
-      remove(tmpname_list[i]);
-    }
+  static char template[24]="/tmp/NshellXXXXXX";
+  FileInfo file_info;
+  AirForceString_Initialize(&(file_info.name), template, 24);
+  int fd = mkstemp(Call(file_info.name, AtPtr, 0));
+  AirForceFileStream_Initialize(&(file_info.file_stream));
+  Call(file_info.file_stream, FDOpen, fd, mode);
+  Call(file_info.file_stream, SetVBuf, NULL, _IOLBF, 0);
+  CallP(temp_file_list, PushBack, &file_info);
+  return CallP(temp_file_list, Back);
+}
+
+void remove_temp_file_all(AirForceVector * temp_file_list)
+{
+  size_t size = CallP(temp_file_list, Size);
+  for(int i = 0; i < size; ++i)
+  {
+    FileInfo * file_info = CallP(temp_file_list, At, 0);
+    Call(file_info->file_stream, Destroy);
+    remove(Call(file_info->name, CStr));
+    Call(file_info->name, Destroy);
+    CallP(temp_file_list, PopBack);
+  }
+}
+
+void close_temp_file_all(AirForceVector * temp_file_list)
+{
+  size_t size = CallP(temp_file_list, Size);
+  for(int i=0; i < size; ++i)
+  {
+    FileInfo * file_info = CallP(temp_file_list, At, 0);
+    Call(file_info->file_stream, Destroy);
+    Call(file_info->name, Destroy);
+    CallP(temp_file_list, PopBack);
+  }
 }
 
 int history_open(History *history)

@@ -15,7 +15,9 @@ int AirForceSocketTCP_Initialize
   }
   AirForceSocketTCP_SetProtocolFamily(socket_tcp, protocol_family);
   AirForceSocketTCP_SetAddressFamily(socket_tcp, address_family);
-  AirForceFileStream_Initialize(&(socket_tcp->file_stream), socket_descriptor, "r+");
+  AirForceFileStream_Initialize(&(socket_tcp->file_stream));
+  AirForceCall(socket_tcp->file_stream, FDOpen, socket_descriptor, "r+");
+  AirForceCall(socket_tcp->file_stream, SetVBuf, NULL, _IOLBF, 0);
 //function pointers
   socket_tcp->Initialize = AirForceSocketTCP_Initialize;
   socket_tcp->IsInitialized = AirForceSocketTCP_IsInitialized;

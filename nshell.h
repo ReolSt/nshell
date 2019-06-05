@@ -42,10 +42,18 @@ int get_prompt(char *prompt_buf);
 
 //FILE
 #define TMPNAME_LIST_MAX_SIZE 30
-int make_tempfile();
-void remove_tempfile_all();
+typedef struct _File_Info
+{
+  AirForceFileStream file_stream;
+  AirForceString name;
+  int is_open;
+} FileInfo;
+void temp_file_list_initialize(AirForceVector * temp_file_list);
+FileInfo * make_tempfile(AirForceVector * temp_file_list, const char * mode);
+void remove_temp_file_all(AirForceVector * temp_file_list);
+void close_temp_file_all(AirForceVector * temp_file_list);
 
-typedef struct _history
+typedef struct _History
 {
   int size;
   AirForceString history_path;
@@ -77,7 +85,7 @@ void tokenizer_clear(Tokenizer *tokenizer);
 void tokenizer_destroy(Tokenizer *tokenizer);
 
 //INTERPRET
-typedef struct _interpret_context
+typedef struct _Interpret_Context
 {
   History *history;
   Tokenizer *tokenizer;
