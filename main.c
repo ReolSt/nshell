@@ -133,7 +133,6 @@ int main(int argc, char *argv[])
     {
       AirForceString * string = Call(result, At, i);
       const char * cstring = CallP(string, CStr);
-      printf("%s", cstring);
       if(CallP(socket_file_stream, Printf, "%s", cstring) < strlen(cstring))
       {
         printf("failed to transfer line.\n");
