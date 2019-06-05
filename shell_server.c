@@ -131,32 +131,38 @@ int main(int argc, char *argv[]) {
       error_handling("main : sscanf Error");
     }
 
-
     printf("main : insertFlag, UID : %d, %s \n", insertFlag, UID);
-
 
     // 1, handle sock 일때,그에 맞는 구조체 배열의 UID를 확인한다.
     if(insertFlag) {
       pthread_mutex_lock(&mutex);
       for(int i = 0; i < handle_cnt; i++) {
         if(strcmp(UID, handle_userdata[i].UID) == 0) {
-          printf("main : handle UID 중복, 기존 연결을 종료합니다.\n");
-          int index = handle_userdata[i].socket_index;
-          AirForceFileStream * stream = Call(handle_stream_list, At, index);
-          close_handle_clnt(CallP(stream, GetDescriptor), index);
-
-          int recv_index = search_recv_index_by_UID(UID);
-          stream = search_recv_file_stream_by_UID(UID);
-          if(recv_index >= 0 && stream != NULL)
+          if(search_recv_index_by_UID(UID) >= 0)
           {
-            close_recv_clnt(CallP(stream, GetDescriptor), recv_index);
+            printf("main : handle UID 중복, 다른 UID를 사용하십시오. \n");
+            errorFlag = 1;
           }
-
-          if(terminate_thread_by_UID(UID) == 0)
+          else
           {
-            printf("Thread(UID = %s)에 종료 요청을 하는 데 실패했습니다.\n",UID);
+            printf("main : handle UID 중복, 기존 연결을 종료합니다.\n");
+            int index = handle_userdata[i].socket_index;
+            AirForceFileStream * stream = Call(handle_stream_list, At, index);
+            close_handle_clnt(CallP(stream, GetDescriptor), index);
+
+            int recv_index = search_recv_index_by_UID(UID);
+            stream = search_recv_file_stream_by_UID(UID);
+            if(recv_index >= 0 && stream != NULL)
+            {
+              close_recv_clnt(CallP(stream, GetDescriptor), recv_index);
+            }
+
+            if(terminate_thread_by_UID(UID) == 0)
+            {
+              printf("Thread(UID = %s)에 종료 요청을 하는 데 실패했습니다.\n",UID);
+            }
+            break;
           }
-          break;
         }
       }
       pthread_mutex_unlock(&mutex);
@@ -183,18 +189,25 @@ int main(int argc, char *argv[]) {
       pthread_mutex_lock(&mutex);
       for(int i = 0; i < recv_cnt; i++){
         if(strcmp(UID, recv_userdata[i].UID) == 0){
-          printf("main : recv UID 중복, 기존 연결을 종료합니다.\n");
-          int index = recv_userdata[i].socket_index;
-          AirForceFileStream * stream = Call(recv_stream_list, At, index);
-          close_recv_clnt(CallP(stream, GetDescriptor), index);
-
-          int handle_index = search_handle_index_by_UID(UID);
-          stream = search_handle_file_stream_by_UID(UID);
-          if(handle_index >= 0 && stream != NULL)
+          if(search_handle_index_by_UID(UID) >= 0)
           {
-            close_handle_clnt(CallP(stream, GetDescriptor), handle_index);
+            printf("main : recv UID 중복, 다른 UID를 사용하십시오. \n");
+            errorFlag = 1;
           }
+          else
+          {
+            printf("main : recv UID 중복, 기존 연결을 종료합니다.\n");
+            int index = recv_userdata[i].socket_index;
+            AirForceFileStream * stream = Call(recv_stream_list, At, index);
+            close_recv_clnt(CallP(stream, GetDescriptor), index);
 
+            int handle_index = search_handle_index_by_UID(UID);
+            stream = search_handle_file_stream_by_UID(UID);
+            if(handle_index >= 0 && stream != NULL)
+            {
+              close_handle_clnt(CallP(stream, GetDescriptor), handle_index);
+            }
+          }
           if(terminate_thread_by_UID(UID) == 0)
           {
             printf("Thread(UID = %s)에 종료 요청을 하는 데 실패했습니다.\n", UID);
