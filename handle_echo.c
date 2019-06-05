@@ -35,24 +35,19 @@ int main(int argc, char *argv[])
 	strcpy(UID,argv[3]);
 
 	AirForceSocketTCP socket_tcp;
-  if(AirForceSocketTCP_Initialize
-     (
-       &socket_tcp,
-       AirForceProtocolFamily_IPv4,
-       AirForceAddressFamily_IPv4
-     ) < 0)
-  {
-    perror("AirForceSocketTCP_Initialize: ");
-    exit(1);
-  }
-  Call(socket_tcp, SetPort, atoi(argv[2]));
-  if(Call(socket_tcp, Connect, argv[1], strlen(argv[1]) < 0))
-  {
-    perror("AirForceSocketTCP_Connect: ");
-    exit(1);
-  }
-  AirForceFileStream * socket_file_stream = Call(socket_tcp, GetFileStream);
-  if(CallP(socket_file_stream, Printf, "%d, %s\n", insertFlag, argv[3]) <= 0)
+	if(AirForceSocketTCP_Initialize(&socket_tcp, AirForceProtocolFamily_IPv4, AirForceAddressFamily_IPv4) < 0)
+	{
+		perror("AirForceSocketTCP_Initialize: ");
+		exit(1);
+	}
+	Call(socket_tcp, SetPort, atoi(argv[2]));
+	if(Call(socket_tcp, Connect, argv[1], strlen(argv[1]) < 0))
+	{
+		perror("AirForceSocketTCP_Connect: ");
+		exit(1);
+	}
+	AirForceFileStream * socket_file_stream = Call(socket_tcp, GetFileStream);
+	if(CallP(socket_file_stream, Printf, "%d, %s\n", insertFlag, argv[3]) <= 0)
 	{
 		printf("플래그, UID 전송에 오류가 발생하였습니다.\n");
 		exit(1);
@@ -72,7 +67,7 @@ int main(int argc, char *argv[])
 				{
 					printf("From server : %s\n",message);
 					printf("recv_client과 연결이 되었습니다.\n");
-   				relayFlag=1;
+					relayFlag=1;
 					break;
 				}
 				else
