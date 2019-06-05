@@ -154,7 +154,7 @@ int main(int argc, char *argv[]) {
 
           if(terminate_thread_by_UID(UID) == 0)
           {
-            printf("Thread(UID = %s)에 종료 요청을 하는 데 실패했습니다.\n");
+            printf("Thread(UID = %s)에 종료 요청을 하는 데 실패했습니다.\n",UID);
           }
           break;
         }
@@ -197,7 +197,7 @@ int main(int argc, char *argv[]) {
 
           if(terminate_thread_by_UID(UID) == 0)
           {
-            printf("Thread(UID = %s)에 종료 요청을 하는 데 실패했습니다.\n");
+            printf("Thread(UID = %s)에 종료 요청을 하는 데 실패했습니다.\n", UID);
           }
           break;
         }
