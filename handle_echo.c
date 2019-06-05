@@ -70,14 +70,14 @@ int main(int argc, char *argv[])
 			{
 				if(CallP(socket_file_stream, Gets, message, BUF_SIZE - 1) != NULL)
 				{
-					printf("From server:%s\n",message);
+					printf("From server : %s\n",message);
 					printf("recv_client과 연결이 되었습니다.\n");
-					relayFlag=1;
+   				relayFlag=1;
 					break;
 				}
 				else
 				{
-					printf("err:TIME_OUT | 상대 측 클라이언트와 연결하지 못했습니다.\n");
+					printf("상대 측 클라이언트와 연결하지 못했습니다.\n");
 					Call(socket_tcp, Destroy);
 					exit(1);
 				}

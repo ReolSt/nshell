@@ -353,6 +353,7 @@ void* Relay_clnt(void* str)
   int flag = 1;
   AirForceFileStream *recv_stream = Call(recv_stream_list, At, recv_user.socket_index);
   AirForceFileStream *handle_stream = Call(handle_stream_list, At, handle_user.socket_index);
+
   if(CallP(handle_stream, Printf, "%c\n", out) > 0)
   {
     printf("UID : %s, handler_clnt flag변환\n", UID);
@@ -366,9 +367,10 @@ void* Relay_clnt(void* str)
   while(flag)
   {
     int plength = 0;
+    printf("UID : %s, 릴레이 시작.\n", UID);
     if(CallP(recv_stream, Gets, prompt_buf, BUF_SIZE - 1) != NULL)
     {
-      printf("UID : %s, Prompt String을 성공적으로 받아왔습니다.\n", UID);
+      printf("UID : %s, Prompt String의 라인수를 성공적으로 받아왔습니다.\n", UID);
       plength = atoi(prompt_buf);
     }
     else
@@ -395,12 +397,14 @@ void* Relay_clnt(void* str)
         if(CallP(handle_stream, Printf, "%s", prompt_buf) < strlen(prompt_buf))
         {
           printf("UID : %s, Prompt String 전송에 오류가 발생하였습니다.\n", UID);
+          flag = 0;
           break;
         }
       }
       else
       {
         printf("UID : %s, Prompt String을 받아오는 데 실패했습니다.\n", UID);
+        flag = 0;
         break;
       }
     }
