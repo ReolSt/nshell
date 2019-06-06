@@ -466,7 +466,7 @@ void* Relay_clnt(void* str)
     printf("UID : %s, 전송할 라인의 수 = %d\n", UID, dlength);
     if(handle_stream->initialized == 0 || CallP(handle_stream, Printf, "%d\n", dlength) <= 0)
     {
-        printf("UID : %s, handle로 전송할 라인 수를 보내는 데 실패하였습니다.\n");
+        printf("UID : %s, handle로 전송할 라인 수를 보내는 데 실패하였습니다.\n", UID);
         break;
     }
     int count = 0;
