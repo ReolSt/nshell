@@ -66,9 +66,22 @@ int main(int argc, char *argv[])
             if(CallP(socket_file_stream, Gets, message, BUF_SIZE - 1) != NULL)
               {
                 printf("From server : %s\n",message);
-                printf("recv_client과 연결이 되었습니다.\n");
-                relayFlag=1;
-                break;
+                if(strcmp(message, "a\n") == 0)
+                {
+                  printf("recv_client과 연결이 되었습니다.\n");
+                  relayFlag=1;
+                  break;
+                }
+                else if(strcmp(message, "b\n") == 0)
+                {
+                  printf("UID가 중복되었습니다.\n");
+                  exit(1);
+                }
+                else
+                {
+                  printf("올바르지 않은 플래그입니다.\n");
+                  exit(1);
+                }
               }
             else
               {
@@ -110,8 +123,29 @@ int main(int argc, char *argv[])
         {
           Call(prompt_string, PopBack);
         }
+
         const char * prompt_cstring = Call(prompt_string, CStr);
-        char * cmd = readline(prompt_cstring);
+        int is_correct_command = 0;
+        char * cmd = NULL;
+        while(is_correct_command == 0)
+        {
+          cmd = readline(prompt_cstring);
+          if(strcmp(cmd, "vi") == 0 || strncmp(cmd, "vi ", 3) == 0)
+          {
+            printf("올바르지 않은 명령어입니다.\n");
+            free(cmd);
+
+          }
+          else if(strcmp(cmd, "emacs") == 0 || strncmp(cmd, "emacs ", 5) == 0)
+          {
+            printf("당신은 연봉이 5억입니다.\n");
+            free(cmd);
+          }
+          else
+          {
+            is_correct_command = 1;
+          }
+        }
         add_history(cmd);
         Call(prompt_string, Destroy);
 
@@ -153,12 +187,12 @@ int main(int argc, char *argv[])
           }
           else
           {
-            printf("데이터를 올바르게 수신하지 못했습니다.\n");            
+            printf("데이터를 올바르게 수신하지 못했습니다.\n");
           }
         }
         if(count < dlength)
         {
-          printf("서버로부터 모든 데이터를 받아오는 데 실패하였습니다.\n");          
+          printf("서버로부터 모든 데이터를 받아오는 데 실패하였습니다.\n");
           exit(1);
         }
         if(dlength == 0)

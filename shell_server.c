@@ -86,7 +86,6 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-
   pthread_mutex_init(&mutex, NULL);
   serv_sock = socket(PF_INET, SOCK_STREAM, 0);
 
@@ -141,6 +140,14 @@ int main(int argc, char *argv[]) {
           if(search_recv_index_by_UID(UID) >= 0)
           {
             printf("main : handle UID 중복, 다른 UID를 사용하십시오. \n");
+            if(fprintf(file, "b\n") <= 0)
+            {
+              printf("main : UID = %s 클라이언트에게 중복 플래그를 보내는 데 실패했습니다.\n", UID);
+            }
+            else
+            {
+              printf("main : UID = %s 클라이언트에게 중복 플래그를 보냈습니다.\n", UID);
+            }
             errorFlag = 1;
           }
           else
@@ -156,7 +163,6 @@ int main(int argc, char *argv[]) {
             {
               close_recv_clnt(CallP(stream, GetDescriptor), recv_index);
             }
-
             if(terminate_thread_by_UID(UID) == 0)
             {
               printf("Thread(UID = %s)에 종료 요청을 하는 데 실패했습니다.\n",UID);
@@ -192,6 +198,14 @@ int main(int argc, char *argv[]) {
           if(search_handle_index_by_UID(UID) >= 0)
           {
             printf("main : recv UID 중복, 다른 UID를 사용하십시오. \n");
+            if(fprintf(file, "b\n") <= 0)
+            {
+              printf("main : UID = %s 클라이언트에게 중복 플래그를 보내는 데 실패했습니다.\n", UID);
+            }
+            else
+            {
+              printf("main : UID = %s 클라이언트에게 중복 플래그를 보냈습니다.\n", UID);
+            }
             errorFlag = 1;
           }
           else
@@ -370,6 +384,16 @@ void* Relay_clnt(void* str)
   if(handle_stream->initialized != 0 && CallP(handle_stream, Printf, "%c\n", out) > 0)
   {
     printf("UID : %s, handler_clnt flag변환\n", UID);
+  }
+  else
+  {
+    printf("UID : %s, 전송에 실패하였습니다.\n", UID);
+    flag = 0;
+  }
+
+  if(recv_stream->initialized != 0 && CallP(recv_stream, Printf, "%c\n", out) > 0)
+  {
+    printf("UID : %s, recv_clnt flag변환\n", UID);
   }
   else
   {
