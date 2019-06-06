@@ -354,7 +354,7 @@ void* Relay_clnt(void* str)
   AirForceFileStream *recv_stream = Call(recv_stream_list, At, recv_user.socket_index);
   AirForceFileStream *handle_stream = Call(handle_stream_list, At, handle_user.socket_index);
 
-  if(CallP(handle_stream, Printf, "%c\n", out) > 0)
+  if(handle_stream->initialized != 0 && CallP(handle_stream, Printf, "%c\n", out) > 0)
   {
     printf("UID : %s, handler_clnt flag변환\n", UID);
   }
@@ -368,7 +368,7 @@ void* Relay_clnt(void* str)
   {
     int plength = 0;
     printf("UID : %s, 릴레이 시작.\n", UID);
-    if(CallP(recv_stream, Gets, prompt_buf, BUF_SIZE - 1) != NULL)
+    if(recv_stream->initialized != 0 && CallP(recv_stream, Gets, prompt_buf, BUF_SIZE - 1) != NULL)
     {
       printf("UID : %s, Prompt String의 라인수를 성공적으로 받아왔습니다.\n", UID);
       plength = atoi(prompt_buf);
@@ -380,7 +380,7 @@ void* Relay_clnt(void* str)
       break;
     }
 
-    if(CallP(handle_stream, Printf, "%d\n", plength) <= 0)
+    if(handle_stream->initialized == 0 || CallP(handle_stream, Printf, "%d\n", plength) <= 0)
     {
       printf("UID : %s, Prompt String의 라인수를 보내는 데 실패하였습니다.\n", UID);
       break;
@@ -392,9 +392,9 @@ void* Relay_clnt(void* str)
 
     for(int i = 0; i < plength; ++i)
     {
-      if(CallP(recv_stream, Gets, prompt_buf, BUF_SIZE - 1) != NULL)
+      if(recv_stream->initialized != 0 && CallP(recv_stream, Gets, prompt_buf, BUF_SIZE - 1) != NULL)
       {
-        if(CallP(handle_stream, Printf, "%s", prompt_buf) < strlen(prompt_buf))
+        if(handle_stream->initialized == 0 || CallP(handle_stream, Printf, "%s", prompt_buf) < strlen(prompt_buf))
         {
           printf("UID : %s, Prompt String 전송에 오류가 발생하였습니다.\n", UID);
           flag = 0;
@@ -409,11 +409,10 @@ void* Relay_clnt(void* str)
       }
     }
 
-    if(CallP(handle_stream, Gets, command_buf, BUF_SIZE - 1) != NULL)
+    if(handle_stream->initialized != 0 && CallP(handle_stream, Gets, command_buf, BUF_SIZE - 1) != NULL)
     {
       printf("UID : %s, recv로 송신 : %s\n", UID, command_buf);
-      size_t result = CallP(recv_stream, Printf, "%s", command_buf);
-      if(result == strlen(command_buf))
+      if(recv_stream->initialized != 0 && CallP(recv_stream, Printf, "%s", command_buf) == strlen(command_buf))
       {
         printf("UID : %s, recv로 송신에 성공하였습니다..\n", UID);
       }
@@ -431,7 +430,7 @@ void* Relay_clnt(void* str)
     }
 
     int dlength = 0;
-    if(CallP(recv_stream, Gets, output_buf, OUTPUT_BUF_SIZE) == NULL)
+    if(recv_stream->initialized == 0 || CallP(recv_stream, Gets, output_buf, OUTPUT_BUF_SIZE) == NULL)
     {
       printf("UID : %s, recv로부터 output 길이 받아오기에 실패하였습니다.\n", UID);
       break;
@@ -444,7 +443,7 @@ void* Relay_clnt(void* str)
     AirForceVector_Initialize(&result, sizeof(AirForceString));
     for(int i = 0; i < dlength; ++i)
     {
-      if(CallP(recv_stream, Gets, output_buf, OUTPUT_BUF_SIZE) != NULL)
+      if(recv_stream->initialized != 0 && CallP(recv_stream, Gets, output_buf, OUTPUT_BUF_SIZE) != NULL)
       {
         AirForceString string;
         AirForceString_Initialize(&string, output_buf, strlen(output_buf));
@@ -465,14 +464,18 @@ void* Relay_clnt(void* str)
       }
     }
     printf("UID : %s, 전송할 라인의 수 = %d\n", UID, dlength);
-    CallP(handle_stream, Printf, "%d\n", dlength);
+    if(handle_stream->initialized == 0 || CallP(handle_stream, Printf, "%d\n", dlength) <= 0)
+    {
+        printf("UID : %s, handle로 전송할 라인 수를 보내는 데 실패하였습니다.\n");
+        break;
+    }
     int count = 0;
     for(int i = 0; i < vlength; ++i)
     {
       AirForceString *string = Call(result, At, i);
       const char *cstring = CallP(string, CStr);
       printf("UID : %s, handle로 송신합니다.\n%s", UID, cstring);
-      if(CallP(handle_stream, Printf, "%s", cstring) == strlen(cstring))
+      if(handle_stream != NULL && CallP(handle_stream, Printf, "%s", cstring) == strlen(cstring))
       {
         count += 1;
         printf("UID : %s, handle로 송신에 성공하였습니다.\n", UID);
@@ -499,8 +502,8 @@ void* Relay_clnt(void* str)
 
   // 쓰레드 종료 단계, 중계되고 있는 소켓들 종료, 배열 정리
   pthread_mutex_lock(&mutex);
-  close_handle_clnt(handle_stream->descriptor, handle_user.socket_index);
-  close_recv_clnt(recv_stream->descriptor, recv_user.socket_index);
+  if(search_handle_index_by_UID(UID) >= 0) close_handle_clnt(handle_stream->descriptor, handle_user.socket_index);
+  if(search_recv_index_by_UID(UID) >= 0) close_recv_clnt(recv_stream->descriptor, recv_user.socket_index);
   pop_UID_array(UID);
   pthread_mutex_unlock(&mutex);
   printf("UID : %s, Thread End : handle_cnt : %d, recv_cnt : %d, thread_cnt : %d\n\n\n", UID, handle_cnt, recv_cnt, thread_cnt);

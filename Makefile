@@ -1,4 +1,4 @@
-CC = gcc
+CC = gcc -g
 CFLAGS = -D_REENTRANT
 CLIBS = -pthread -lreadline
 CMDS = shell_server handle_echo
